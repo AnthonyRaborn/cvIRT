@@ -338,6 +338,18 @@ bestModel <- function(results, alpha = .05) {
 
     logLikResults <- lapply(selectListElement(lapply(results$`-2 log-Likelihood Ratio Test`, selectRow, "Mean:")), colMeans)
 
+  } else if ("cvIRTresub" %in% class(results)) {
+    AIC = results$AIC[1, which.min(results$AIC[1,])]
+    names(AIC) = names(which.min(results$AIC[1,]))
+
+    BIC = results$BIC[1, which.min(results$BIC[1,])]
+    names(BIC) = names(which.min(results$BIC[1,]))
+
+    AICc = results$AICc[1, which.min(results$AICc[1,])]
+    names(AICc) = names(which.min(results$AICc[1,]))
+
+    logLikResults <- lapply(results$`-2 log-Likelihood Ratio Test`, selectRow, "Resubstitution:")
+
   }
 
   # Use the Holm-Bonferroni adjustment for multiple comparisons automatically

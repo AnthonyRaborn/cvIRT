@@ -29,7 +29,7 @@ An object of class "cvIRT" with the following values:
 \item{seed}{The random seed that produced the results.}
 \item{trainData}{A list of each replications' training data.}
 \item{testData}{A list of each replications' testing data.}
-\item{trainLik}{A matrix of the loglikelihood values estimated on the testing data for each model within each holdout replication.}
+\item{testLik}{A matrix of the loglikelihood values estimated on the testing data for each model within each holdout replication.}
 \item{nModelParams}{A matrix of the number model parameters estimated on the training data within each holdout replication.}
 \item{AIC}{A matrix of the AIC value for each holdout replication, as well as the mean value across each replication.}
 \item{AICc}{A matrix of the AICc value for each holdout replication, as well as the mean value across each replication.}
