@@ -4,6 +4,7 @@
 #' @param modelTypes A character vector specifying the model types to be compared. Uses the `TAM` package format, so must be one of the following: "1PL", "2PL", "PCM", "PCM2", "RSM", "GPCM", and "2PL.groups".
 #' @param indicator A logical value that controls the progress printing.
 #' @param ... Further arguments to be passed to the `tam` function.
+#' @param type A character vector specifying whether the validation treats the "person" or the "item" as the unit of observation. Default is "person".
 #'
 #' @return An object of class "cvIRT" with the following values:
 #' \item{data}{The data used in the function.}
@@ -19,7 +20,7 @@
 #' @export
 #' @family resubstitution
 #'
-#' @examples None.
+#' @examples #None.
 resubstitution = function(responseData, modelTypes, indicator = TRUE, ..., type = "person") {
 
   startTime <- Sys.time()

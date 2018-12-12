@@ -26,7 +26,7 @@
 #' @export
 #' @family cross-validation
 #'
-#' @examples None.
+#' @examples #None.
 #'
 crossValidation <- function(responseData, modelTypes, folds = 10, replications = 1, indicator = TRUE, ..., seed = NULL, type = "person") {
 

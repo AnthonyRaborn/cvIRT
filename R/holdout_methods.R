@@ -25,7 +25,7 @@
 #' @export
 #' @family holdout
 #'
-#' @examples None.
+#' @examples #None.
 holdout = function(responseData, modelTypes, proportion, replications, indicator = TRUE, ..., seed = NULL, type = "person") {
 
   startTime <- Sys.time()

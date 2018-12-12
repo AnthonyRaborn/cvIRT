@@ -42,6 +42,6 @@ An object of class "cvIRT" with the following values:
 Holdout Validation
 }
 \examples{
-None.
+#None.
 }
 \concept{holdout}

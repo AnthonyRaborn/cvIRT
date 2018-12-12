@@ -42,7 +42,7 @@ An object of class "cvIRT" with the following values:
 *k*-Fold Cross-Validation
 }
 \examples{
-None.
+#None.
 
 }
 \concept{cross-validation}

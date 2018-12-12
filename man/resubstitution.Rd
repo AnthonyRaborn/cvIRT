@@ -15,6 +15,8 @@ resubstitution(responseData, modelTypes, indicator = TRUE, ...,
 \item{indicator}{A logical value that controls the progress printing.}
 
 \item{...}{Further arguments to be passed to the `tam` function.}
+
+\item{type}{A character vector specifying whether the validation treats the "person" or the "item" as the unit of observation. Default is "person".}
 }
 \value{
 An object of class "cvIRT" with the following values:
@@ -32,6 +34,6 @@ An object of class "cvIRT" with the following values:
 Resubstitution
 }
 \examples{
-None.
+#None.
 }
 \concept{resubstitution}
