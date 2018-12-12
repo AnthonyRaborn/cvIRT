@@ -1,20 +1,31 @@
 #' The Standard Bootstrap
 #'
-#' @param responseData
-#' @param modelTypes
-#' @param bootSize
-#' @param replications
-#' @param leaveOneOut
-#' @param indicator
-#' @param ...
-#' @param seed
-#' @param type
+#' @param responseData The initial, full sample data as a matrix of item responses.
+#' @param modelTypes A character vector specifying the model types to be compared. Uses the `TAM` package format, so must be one of the following: "1PL", "2PL", "PCM", "PCM2", "RSM", "GPCM", and "2PL.groups".
+#' @param bootSize An integer value greater than 0 that indicates the number of bootstrap samples to draw.
+#' @param replications The number of replications of the bootstrap procedure to perform. Not suggested to use as for the standard bootstrap changing the `bootSize` is more efficient.
+#' @param leaveOneOut A logical value indicating whether to use `leaveOneOut` bootstrap. Not suggested for use.
+#' @param indicator A logical value that controls the progress printing.
+#' @param ... Further arguments to be passed to the `tam` function.
+#' @param seed Either a positive integer setting the random seed, or `NULL`.
+#' @param type A character vector specifying whether the validation treats the "person" or the "item" as the unit of observation. Default is "person".
 #'
-#' @return
+#' @return A list object of class "cvIRT" with the following values:
+#' \item{call}{The original function calls.}
+#' \item{seed}{The random seed that produced the results.}
+#' \item{bootstrapSamples}{A list of each bootstrap samples' training data.}
+#' \item{testLik}{A matrix of the loglikelihood values estimated on the testing data for each model within each holdout replication.}
+#' \item{nModelParams}{A matrix of the number model parameters estimated on the training data within each holdout replication.}
+#' \item{AIC}{A matrix of the AIC value for each holdout replication, as well as the mean value across each replication.}
+#' \item{AICc}{A matrix of the AICc value for each holdout replication, as well as the mean value across each replication.}
+#' \item{BIC}{A matrix of the BIC value for each holdout replication, as well as the mean value across each replication.}
+#' \item{-2 log-Likelihood Ratio Test}{A list of the log-likelihood ratio test statistics, degrees of freedom, and p-values for each model comparison and each replication, as well as the test using the mean test statistics and degrees of freedom. If only one model is used, returns `NULL`.}
+#' \item{warnings}{A character vector of any warnings incurred while the method runs.}
+#' \item{time}{A vector of the start and end times of the function.}
 #' @export
 #' @family bootstrap
 #'
-#' @examples None.
+#' @examples #None.
 #'
 simpleBootstrap <- function(responseData, modelTypes, bootSize = 50, replications = 1, leaveOneOut = F, indicator = TRUE, ..., seed = NULL, type = "person") {
 
@@ -208,21 +219,33 @@ simpleBootstrap <- function(responseData, modelTypes, bootSize = 50, replication
 
 #' (Repeated) \emph{k}-Fold Bootstrap
 #'
-#' @param responseData
-#' @param modelTypes
-#' @param bootSize
-#' @param folds
-#' @param replications
-#' @param indicator
-#' @param ...
-#' @param seed
-#' @param type
+#' @param responseData The initial, full sample data as a matrix of item responses.
+#' @param modelTypes A character vector specifying the model types to be compared. Uses the `TAM` package format, so must be one of the following: "1PL", "2PL", "PCM", "PCM2", "RSM", "GPCM", and "2PL.groups".
+#' @param bootSize An integer value greater than 0 that indicates the number of bootstrap samples to draw.
+#' @param folds An integer value indicating the number of cross-validation folds to split the data into during the cross-validation process.
+#' @param replications The number of replications of the bootstrap procedure to perform. Not suggested to use as for the standard bootstrap changing the `bootSize` is more efficient.
+#' @param leaveOneOut A logical value indicating whether to use `leaveOneOut` bootstrap. Not suggested for use.
+#' @param indicator A logical value that controls the progress printing.
+#' @param ... Further arguments to be passed to the `tam` function.
+#' @param seed Either a positive integer setting the random seed, or `NULL`.
+#' @param type A character vector specifying whether the validation treats the "person" or the "item" as the unit of observation. Default is "person".
 #'
-#' @return
+#' @return A list object of class "cvIRT" with the following values:
+#' \item{call}{The original function calls.}
+#' \item{seed}{The random seed that produced the results.}
+#' \item{bootstrapSamples}{A list of each bootstrap samples' training data.}
+#' \item{testLik}{A matrix of the loglikelihood values estimated on the testing data for each model within each holdout replication.}
+#' \item{nModelParams}{A matrix of the number model parameters estimated on the training data within each holdout replication.}
+#' \item{AIC}{A matrix of the AIC value for each holdout replication, as well as the mean value across each replication.}
+#' \item{AICc}{A matrix of the AICc value for each holdout replication, as well as the mean value across each replication.}
+#' \item{BIC}{A matrix of the BIC value for each holdout replication, as well as the mean value across each replication.}
+#' \item{-2 log-Likelihood Ratio Test}{A list of the log-likelihood ratio test statistics, degrees of freedom, and p-values for each model comparison and each replication, as well as the test using the mean test statistics and degrees of freedom. If only one model is used, returns `NULL`.}
+#' \item{warnings}{A character vector of any warnings incurred while the method runs.}
+#' \item{time}{A vector of the start and end times of the function.}
 #' @export
 #' @family bootstrap
 #'
-#' @examples None.
+#' @examples #None.
 #'
 kfoldBootstrap <- function(responseData, modelTypes, bootSize = 50, folds = 10, replications = 1, indicator = TRUE, ..., seed = NULL, type = "person") {
 
