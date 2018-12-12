@@ -144,7 +144,7 @@ cvLogLikRatio <- function(loglikelihood, numParams, models, method) {
     degFree[,i-1] = abs(numParams[1,i] - numParams[1,i-1])
     modelsTested[i-1] = paste0(models[i-1], " vs. ", models[i])
     }
-    pval = pchisq(testStat, df = degFree, lower.tail = F)
+    pval = stats::pchisq(testStat, df = degFree, lower.tail = F)
     results <- vector("list", length = length(modelsTested))
     for (i in 1:length(modelsTested)) {
       temp = cbind(testStat[,i], degFree[,i], pval[,i])
@@ -175,7 +175,7 @@ cvLogLikRatio <- function(loglikelihood, numParams, models, method) {
 
       }
 
-      pval = pchisq(testStat, df = degFree, lower.tail = F)
+      pval = stats::pchisq(testStat, df = degFree, lower.tail = F)
 
       for (i in 1:length(modelsTested)) {
         temp = cbind(testStat[,i], degFree[,i], pval[,i])
@@ -189,7 +189,7 @@ cvLogLikRatio <- function(loglikelihood, numParams, models, method) {
     for (i in 1:length(results)) {
       meanTS = mean(results[[i]][,1])
       meanDF = mean(results[[i]][,2])
-      meanP = pchisq(meanTS, meanDF, lower.tail = F)
+      meanP = stats::pchisq(meanTS, meanDF, lower.tail = F)
       results[[i]] = rbind(results[[i]], "Mean:" = c(meanTS, meanDF, meanP))
     }
 
@@ -208,7 +208,7 @@ cvLogLikRatio <- function(loglikelihood, numParams, models, method) {
 
   }
 
-    pval = pchisq(testStat, df = numParams[,i-1] - numParams[,i], lower.tail = F)
+    pval = stats::pchisq(testStat, df = numParams[,i-1] - numParams[,i], lower.tail = F)
 
     } else if (numParams[1,2] - numParams[1,1] > 0) {
 
@@ -220,7 +220,7 @@ cvLogLikRatio <- function(loglikelihood, numParams, models, method) {
 
       }
 
-    pval = pchisq(testStat, df = numParams[,i] - numParams[,i-1], lower.tail = F)
+    pval = stats::pchisq(testStat, df = numParams[,i] - numParams[,i-1], lower.tail = F)
 
     }
 
@@ -240,7 +240,7 @@ cvLogLikRatio <- function(loglikelihood, numParams, models, method) {
       rownames(temp) = paste0("Bootstrap Sample ", 1:nrow(loglikelihood), ":")
     }
 
-    temp = rbind(temp, "Mean:" = c(mean(testStat[,i], na.rm = T), mean(degFree[,i], na.rm = T), pchisq(mean(testStat[,i]), df = mean(degFree[,i]), lower.tail = F)))
+    temp = rbind(temp, "Mean:" = c(mean(testStat[,i], na.rm = T), mean(degFree[,i], na.rm = T), stats::pchisq(mean(testStat[,i]), df = mean(degFree[,i]), lower.tail = F)))
     results[[i]] = temp
   }
   names(results) <-  modelsTested

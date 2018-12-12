@@ -36,7 +36,7 @@ tam.mml.loocv <- function (resp, Y = NULL, group = NULL, irtmodel = "1PL", maxKi
   if (progress) {
     cat(disp)
     cat("Processing Data     ", paste(Sys.time()), "\n")
-    flush.console()
+    utils::flush.console()
   }
   if (!is.null(group)) {
     con1a$QMC <- QMC <- FALSE
@@ -63,7 +63,7 @@ tam.mml.loocv <- function (resp, Y = NULL, group = NULL, irtmodel = "1PL", maxKi
   if (progress) {
     cat("    * Response Data:", nstud, "Persons and ", nitems,
         "Items \n")
-    flush.console()
+    utils::flush.console()
   }
   if (is.null(pid)) {
     pid <- seq(1, nstud)
@@ -108,7 +108,7 @@ tam.mml.loocv <- function (resp, Y = NULL, group = NULL, irtmodel = "1PL", maxKi
   if (progress) {
     cat("    * Created Design Matrices   (", paste(Sys.time()),
         ")\n")
-    flush.console()
+    utils::flush.console()
   }
   design <- NULL
   res <- TAM:::tam_mml_proc_est_xsi_index(A, xsi.inits, xsi.fixed)
