@@ -2,3 +2,5 @@
 ^\.Rproj\.user$
 TIMSS Item Parameters for Simulation.csv
 test code script.R
+.travis.yml
+modified_TAM_code.R
