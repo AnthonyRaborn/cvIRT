@@ -24,6 +24,7 @@
 #'
 #' @export
 #' @family holdout
+#' @importFrom TAM tam.mml tam.mml.2pl
 #'
 #' @examples #None.
 holdout = function(responseData, modelTypes, proportion, replications, indicator = TRUE, ..., seed = NULL, type = "person") {

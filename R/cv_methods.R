@@ -3,7 +3,7 @@
 #'
 #' @param responseData The initial, full sample data as a matrix of item responses.
 #' @param modelTypes A character vector specifying the model types to be compared. Uses the `TAM` package format, so must be one of the following: "1PL", "2PL", "PCM", "PCM2", "RSM", "GPCM", and "2PL.groups".
-#' @param folds An integer value indicating the number of cross-validation folds to split the data into during the cross-validation process. If specified as `folds=nrow(responseData)` (or some other way equivalently), results in the leave-one-out cross-validation procedure (a.k.a., when *k*=*n*, *k*-fold CV == *n*-fold CV == LOOCV).
+#' @param folds An integer value indicating the number of cross-validation folds to split the data into during the cross-validation process. If specified as `folds=nrow(responseData)` (or some other way equivalently), results in the leave-one-out cross-validation procedure (a.k.a., when *k*=*n*, *k*-fold CV == *n*-fold CV == LOOCV). **LOOCV is not supported and will likely not work**.
 #' @param replications The number of replications of the *k*-fold CV procedure to perform, with data being split into the *k*-fold groups randomly each time.
 #' @param indicator A logical value that controls the progress printing.
 #' @param ... Further arguments to be passed to the `tam` function.
@@ -25,6 +25,7 @@
 #'
 #' @export
 #' @family cross-validation
+#' @importFrom TAM tam.mml tam.mml.2pl
 #'
 #' @examples #None.
 #'
@@ -80,20 +81,20 @@ crossValidation <- function(responseData, modelTypes, folds = 10, replications =
 
   AICval <- AICCval <- BICval <- LLRtest <- vector('list', length = replications)
 
-  if (folds == nrow(responseData)) loocv = T else loocv = F
+  # if (folds == nrow(responseData)) loocv = T else loocv = F
 
   for (i in 1:replications) {
 
     # assign each row to a fold for this replication; notice it stays constant across models j
-    if (!loocv){
-
-         foldAssignment[[i]] <- sample(x = rep(1:folds, length.out = nrow(responseData)), size = nrow(responseData))
-
-    } else {
+    # if (!loocv){
+    #
+    #      foldAssignment[[i]] <- sample(x = rep(1:folds, length.out = nrow(responseData)), size = nrow(responseData))
+    #
+    # } else {
 
            foldAssignment[[i]] <- 1:folds
 
-    }
+    # }
 
     trainModels <- testModels <- vector('list', length = length(modelTypes))
 
@@ -120,18 +121,18 @@ crossValidation <- function(responseData, modelTypes, folds = 10, replications =
 
         }
 
-        if (loocv) {
-          if (rowSums(outSample)==0) {
-            # if the person has all 0's, ignore them.
-            # will cause problems with the logLike-based methods, but allows for the
-            # run to finish
-            testModels[[j]] <- NULL
-            testModels[[j]]$ic$loglike <- NA
-          } else {
-
-            testModels[[j]] <- tam.mml.loocv(outSample, irtmodel = modelTypes[j], maxKiInput = rep(max(responseData), times = ncol(responseData)), xsi.fixed = trainModels[[j]]$xsi.fixed.estimated, xsi.inits = trainModels[[j]]$xsi.fixed.estimated, verbose = F, ...)
-          }
-        } else {
+        # if (loocv) {
+        #   if (rowSums(outSample)==0) {
+        #     # if the person has all 0's, ignore them.
+        #     # will cause problems with the logLike-based methods, but allows for the
+        #     # run to finish
+        #     testModels[[j]] <- NULL
+        #     testModels[[j]]$ic$loglike <- NA
+        #   } else {
+        #
+        #     testModels[[j]] <- tam.mml.loocv(outSample, irtmodel = modelTypes[j], maxKiInput = rep(max(responseData), times = ncol(responseData)), xsi.fixed = trainModels[[j]]$xsi.fixed.estimated, xsi.inits = trainModels[[j]]$xsi.fixed.estimated, verbose = F, ...)
+        #   }
+        # } else {
 
           if (modelTypes[j] %in% c("1PL", "PCM", "PCM2", "RSM")) {
           testModels[[j]] <- tryCatch(TAM::tam.mml(outSample, irtmodel = modelTypes[j], xsi.fixed = trainModels[[j]]$xsi.fixed.estimated, xsi.inits = trainModels[[j]]$xsi.fixed.estimated, verbose = F, ...),
@@ -141,7 +142,7 @@ crossValidation <- function(responseData, modelTypes, folds = 10, replications =
                                         error = function(e) return(NA))
 
           }
-        }
+        # }
         if (is.na(testModels[[j]])) {
           testLikList[[i]][k,j] = NA
           nParamTrainList[[i]][k,j] = trainModels[[j]]$ic$np

@@ -24,6 +24,7 @@
 #' \item{time}{A vector of the start and end times of the function.}
 #' @export
 #' @family bootstrap
+#' @importFrom TAM tam.mml tam.mml.2pl
 #'
 #' @examples #None.
 #'
@@ -74,7 +75,7 @@ simpleBootstrap <- function(responseData, modelTypes, bootSize = 50, replication
 
   AICval <- AICCval <- BICval <- LLRtest <- loobLLRtest <- resubLLRtest <- boot632LLRtest <- vector('list', length = replications)
 
-  if (leaveOneOut) boot632AIC <- boot632AICc <- boot632BIC <- boot632LLRtest <- vector('list', length = replications)
+  # if (leaveOneOut) boot632AIC <- boot632AICc <- boot632BIC <- boot632LLRtest <- vector('list', length = replications)
 
   for (i in 1:replications) {
 
@@ -144,48 +145,49 @@ simpleBootstrap <- function(responseData, modelTypes, bootSize = 50, replication
       LLRtest[[i]] <- NULL
     }
 
-  } else if (leaveOneOut) {
-
-    loobLogLik <- loobLogLikEst(fittedModels = testModels, loobMatrix = usableBootSamples,
-                                models = modelTypes, responses = responseData, bootstrapSamples = bootSamples)
-    resubLogLik <- resubLogLikEst(models = modelTypes, responses = responseData)
-    boot632logLik <- loob632logLikEst(loobEst = loobLogLik, resubEst = resubLogLik)
-
-    AICval[[i]] <- cvAIC(loglikelihood = loobLogLik, numParams = nParamTrainList[[i]], method = "loob")
-    AICCval[[i]] <- cvAICc(loglikelihood = loobLogLik, numParams = nParamTrainList[[i]], n = nrow(responseData), method = "loob")
-    BICval[[i]] <- cvBIC(loglikelihood = loobLogLik, numParams = nParamTrainList[[i]], n = nrow(responseData), method = "loob")
-
-    resubAIC[[i]] <- cvAIC(loglikelihood = resubLogLik, numParams = nParamTrainList[[i]], method = "resub")
-    resubAICc[[i]] <- cvAICc(loglikelihood = resubLogLik, numParams = nParamTrainList[[i]], n = nrow(responseData), method = "resub")
-    resubBIC[[i]] <- cvBIC(loglikelihood = resubLogLik, numParams = nParamTrainList[[i]], n = nrow(responseData), method = "resub")
-
-    boot632AIC[[i]] <- .632*AICval[[i]]+ .368*resubAIC[[i]]
-    rownames(boot632AIC[[i]]) <- ".632 Bootstrap AIC:"
-    boot632AICc[[i]] <- .632*AICCval[[i]]+ .368*resubAICc[[i]]
-    rownames(boot632AICc[[i]]) <- ".632 Bootstrap AICc:"
-    boot632BIC[[i]] <- .632*BICval[[i]]+ .368*resubBIC[[i]]
-    rownames(boot632BIC[[i]]) <- ".632 Bootstrap BIC:"
-
-    if (length(modelTypes) > 1) {
-      loobLLRtest[[i]] <- cvLogLikRatio(loglikelihood = loobLogLik, numParams = nParamTrainList[[i]], models = modelTypes, method = 'loob')
-      resubLLRtest[[i]] <- cvLogLikRatio(loglikelihood = resubLogLik, numParams = nParamTrainList[[i]], models = modelTypes, method = 'loob')
-      boot632LLRtStatistic <- .632*selectRow(sapply(loobLLRtest[[i]], selectRow, "Leave One Out Bootstrap:"), "Test Statistic") + .368*selectRow(sapply(resubLLRtest[[i]], selectRow, "Leave One Out Bootstrap:"), "Test Statistic")
-      boot632LLRtDF <- selectRow(sapply(loobLLRtest[[i]], selectRow, "Leave One Out Bootstrap:"), "degrees of freedom")
-      boot632LLRtest[[i]] <- cbind("Test Statistic" = boot632LLRtStatistic, "degrees of freedom" = boot632LLRtDF,  "p-value" = pchisq(boot632LLRtStatistic, df = boot632LLRtDF, lower.tail = F))
-    } else {
-      loobLLRtest <- resubLLRtest <- boot632LLRtest <- NULL
-    }
-
-    }
+  }
+    # else if (leaveOneOut) {
+    #
+    # loobLogLik <- loobLogLikEst(fittedModels = testModels, loobMatrix = usableBootSamples,
+    #                             models = modelTypes, responses = responseData, bootstrapSamples = bootSamples)
+    # resubLogLik <- resubLogLikEst(models = modelTypes, responses = responseData)
+    # boot632logLik <- loob632logLikEst(loobEst = loobLogLik, resubEst = resubLogLik)
+    #
+    # AICval[[i]] <- cvAIC(loglikelihood = loobLogLik, numParams = nParamTrainList[[i]], method = "loob")
+    # AICCval[[i]] <- cvAICc(loglikelihood = loobLogLik, numParams = nParamTrainList[[i]], n = nrow(responseData), method = "loob")
+    # BICval[[i]] <- cvBIC(loglikelihood = loobLogLik, numParams = nParamTrainList[[i]], n = nrow(responseData), method = "loob")
+    #
+    # resubAIC[[i]] <- cvAIC(loglikelihood = resubLogLik, numParams = nParamTrainList[[i]], method = "resub")
+    # resubAICc[[i]] <- cvAICc(loglikelihood = resubLogLik, numParams = nParamTrainList[[i]], n = nrow(responseData), method = "resub")
+    # resubBIC[[i]] <- cvBIC(loglikelihood = resubLogLik, numParams = nParamTrainList[[i]], n = nrow(responseData), method = "resub")
+    #
+    # boot632AIC[[i]] <- .632*AICval[[i]]+ .368*resubAIC[[i]]
+    # rownames(boot632AIC[[i]]) <- ".632 Bootstrap AIC:"
+    # boot632AICc[[i]] <- .632*AICCval[[i]]+ .368*resubAICc[[i]]
+    # rownames(boot632AICc[[i]]) <- ".632 Bootstrap AICc:"
+    # boot632BIC[[i]] <- .632*BICval[[i]]+ .368*resubBIC[[i]]
+    # rownames(boot632BIC[[i]]) <- ".632 Bootstrap BIC:"
+    #
+    # if (length(modelTypes) > 1) {
+    #   loobLLRtest[[i]] <- cvLogLikRatio(loglikelihood = loobLogLik, numParams = nParamTrainList[[i]], models = modelTypes, method = 'loob')
+    #   resubLLRtest[[i]] <- cvLogLikRatio(loglikelihood = resubLogLik, numParams = nParamTrainList[[i]], models = modelTypes, method = 'loob')
+    #   boot632LLRtStatistic <- .632*selectRow(sapply(loobLLRtest[[i]], selectRow, "Leave One Out Bootstrap:"), "Test Statistic") + .368*selectRow(sapply(resubLLRtest[[i]], selectRow, "Leave One Out Bootstrap:"), "Test Statistic")
+    #   boot632LLRtDF <- selectRow(sapply(loobLLRtest[[i]], selectRow, "Leave One Out Bootstrap:"), "degrees of freedom")
+    #   boot632LLRtest[[i]] <- cbind("Test Statistic" = boot632LLRtStatistic, "degrees of freedom" = boot632LLRtDF,  "p-value" = pchisq(boot632LLRtStatistic, df = boot632LLRtDF, lower.tail = F))
+    # } else {
+    #   loobLLRtest <- resubLLRtest <- boot632LLRtest <- NULL
+    # }
+    #
+    # }
 
 
   }
 
 
-  if (leaveOneOut) {
-    resub <- list("AIC resubstitution" = resubAIC, "AICc resubstitution" = resubAICc, "BIC resubstitution" = resubBIC, "-2 log-Likelihood Ratio Test resubstitution" = resubLLRtest)
-  boot632 <- list("AIC .632 Bootstrap" = boot632AIC, "AICc .632 Bootstrap" = boot632AICc, "BIC .632 Bootstrap" = boot632BIC, "-2 log-Likelihood Ratio Test .632 Bootstrap" = boot632LLRtest)
-  }
+  # if (leaveOneOut) {
+  #   resub <- list("AIC resubstitution" = resubAIC, "AICc resubstitution" = resubAICc, "BIC resubstitution" = resubBIC, "-2 log-Likelihood Ratio Test resubstitution" = resubLLRtest)
+  # boot632 <- list("AIC .632 Bootstrap" = boot632AIC, "AICc .632 Bootstrap" = boot632AICc, "BIC .632 Bootstrap" = boot632BIC, "-2 log-Likelihood Ratio Test .632 Bootstrap" = boot632LLRtest)
+  # }
   endTime <- Sys.time()
 
   # create the results
@@ -202,16 +204,16 @@ simpleBootstrap <- function(responseData, modelTypes, bootSize = 50, replication
   results$`-2 log-Likelihood Ratio Test` <- ifelse(leaveOneOut, loobLLRtest, LLRtest)
   results$warnings <- warningAttr(AICval, warningIndicator)
   results$time <- c(startTime, endTime)
-  if (leaveOneOut) {
-    results$resubstitution <- resub
-    results$`.632 Bootstrap Results` <- boot632
-  }
+  # if (leaveOneOut) {
+  #   results$resubstitution <- resub
+  #   results$`.632 Bootstrap Results` <- boot632
+  # }
 
-  if (leaveOneOut) {
-    class(results) <- c('cvIRT', 'cvIRTloob')
-  } else {
+  # if (leaveOneOut) {
+  #   class(results) <- c('cvIRT', 'cvIRTloob')
+  # } else {
   class(results) <- c("cvIRT", "cvIRTbootstrap")
-  }
+  # }
 
   return(results)
 
@@ -224,7 +226,6 @@ simpleBootstrap <- function(responseData, modelTypes, bootSize = 50, replication
 #' @param bootSize An integer value greater than 0 that indicates the number of bootstrap samples to draw.
 #' @param folds An integer value indicating the number of cross-validation folds to split the data into during the cross-validation process.
 #' @param replications The number of replications of the bootstrap procedure to perform. Not suggested to use as for the standard bootstrap changing the `bootSize` is more efficient.
-#' @param leaveOneOut A logical value indicating whether to use `leaveOneOut` bootstrap. Not suggested for use.
 #' @param indicator A logical value that controls the progress printing.
 #' @param ... Further arguments to be passed to the `tam` function.
 #' @param seed Either a positive integer setting the random seed, or `NULL`.
@@ -244,6 +245,7 @@ simpleBootstrap <- function(responseData, modelTypes, bootSize = 50, replication
 #' \item{time}{A vector of the start and end times of the function.}
 #' @export
 #' @family bootstrap
+#' @importFrom TAM tam.mml tam.mml.2pl
 #'
 #' @examples #None.
 #'

@@ -20,6 +20,7 @@
 #' @export
 #' @family resubstitution
 #'
+#' @importFrom TAM tam.mml tam.mml.2pl
 #' @examples #None.
 resubstitution = function(responseData, modelTypes, indicator = TRUE, ..., type = "person") {
 
@@ -83,7 +84,7 @@ resubstitution = function(responseData, modelTypes, indicator = TRUE, ..., type 
 
   results <- list()
   results$data <- responseData
-  results$logLik <- logLik
+  results$logLik <- testLik
   results$nModelParams <- nParamTrain
   results$AIC <- AICval
   results$AICc <- AICCval

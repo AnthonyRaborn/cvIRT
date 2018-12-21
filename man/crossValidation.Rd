@@ -12,7 +12,7 @@ crossValidation(responseData, modelTypes, folds = 10, replications = 1,
 
 \item{modelTypes}{A character vector specifying the model types to be compared. Uses the `TAM` package format, so must be one of the following: "1PL", "2PL", "PCM", "PCM2", "RSM", "GPCM", and "2PL.groups".}
 
-\item{folds}{An integer value indicating the number of cross-validation folds to split the data into during the cross-validation process. If specified as `folds=nrow(responseData)` (or some other way equivalently), results in the leave-one-out cross-validation procedure (a.k.a., when *k*=*n*, *k*-fold CV == *n*-fold CV == LOOCV).}
+\item{folds}{An integer value indicating the number of cross-validation folds to split the data into during the cross-validation process. If specified as `folds=nrow(responseData)` (or some other way equivalently), results in the leave-one-out cross-validation procedure (a.k.a., when *k*=*n*, *k*-fold CV == *n*-fold CV == LOOCV). **LOOCV is not supported and will likely not work**.}
 
 \item{replications}{The number of replications of the *k*-fold CV procedure to perform, with data being split into the *k*-fold groups randomly each time.}
 
