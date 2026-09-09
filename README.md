@@ -1,18 +1,19 @@
 # cvIRT
 
-Cross-validation and bootstrap methods for selecting between competing IRT (Item Response Theory) and Rasch models. Given a matrix of item responses, `cvIRT` fits candidate models using the [TAM](https://CRAN.R-project.org/package=TAM) package and compares them with AIC, AICc, BIC, and the log-likelihood ratio test with Holm–Bonferroni correction.
+Cross-validation and bootstrap methods for selecting between competing IRT (Item Response Theory) and Rasch models. Given a matrix of item responses, `cvIRT` fits candidate models using the [mirt](https://CRAN.R-project.org/package=mirt) package and compares them with AIC, AICc, BIC, and the log-likelihood ratio test with Holm–Bonferroni correction.
 
 ## Supported models
 
-Any combination of the following TAM model types can be compared:
+Any combination of the following model types can be compared:
 
-- **1PL** (Rasch)
+- **Rasch** (all item discriminations fixed at 1)
+- **1PL** (a single discrimination estimated and shared across items — distinct from Rasch)
 - **2PL**
+- **3PL**
 - **PCM** (Partial Credit Model)
 - **PCM2**
 - **RSM** (Rating Scale Model)
 - **GPCM** (Generalized Partial Credit Model)
-- **2PL.groups**
 
 ## Installation
 
