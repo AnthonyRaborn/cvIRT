@@ -18,7 +18,7 @@ crossValidation(
 \arguments{
 \item{responseData}{The initial, full sample data as a matrix of item responses.}
 
-\item{modelTypes}{A character vector specifying the model types to be compared. Uses the `TAM` package format, so must be one of the following: "1PL", "2PL", "PCM", "PCM2", "RSM", "GPCM", and "2PL.groups".}
+\item{modelTypes}{A character vector specifying the model types to be compared. Valid values: "Rasch", "1PL", "2PL", "3PL", "PCM", "PCM2", "RSM", and "GPCM".}
 
 \item{folds}{An integer value indicating the number of cross-validation folds to split the data into during the cross-validation process. If specified as `folds=nrow(responseData)` (or some other way equivalently), results in the leave-one-out cross-validation procedure (a.k.a., when *k*=*n*, *k*-fold CV == *n*-fold CV == LOOCV).}
 
@@ -26,7 +26,7 @@ crossValidation(
 
 \item{indicator}{A logical value that controls the progress printing.}
 
-\item{...}{Further arguments to be passed to the `tam` function.}
+\item{...}{Further arguments to be passed to the `mirt` function.}
 
 \item{seed}{Either a positive integer setting the random seed, or `NULL`.}
 

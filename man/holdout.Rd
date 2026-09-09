@@ -18,7 +18,7 @@ holdout(
 \arguments{
 \item{responseData}{The initial, full sample data as a matrix of item responses.}
 
-\item{modelTypes}{A character vector specifying the model types to be compared. Uses the `TAM` package format, so must be one of the following: "1PL", "2PL", "PCM", "PCM2", "RSM", "GPCM", and "2PL.groups".}
+\item{modelTypes}{A character vector specifying the model types to be compared. Valid values: "Rasch", "1PL", "2PL", "3PL", "PCM", "PCM2", "RSM", and "GPCM".}
 
 \item{proportion}{The proportion of the data to hold out for validation. Must be a numeric value between 0 and 1, exclusive.}
 
@@ -26,7 +26,7 @@ holdout(
 
 \item{indicator}{A logical value that controls the progress printing.}
 
-\item{...}{Further arguments to be passed to the `tam` function.}
+\item{...}{Further arguments to be passed to the `mirt` function.}
 
 \item{seed}{Either a positive integer setting the random seed, or `NULL`.}
 
