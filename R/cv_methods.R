@@ -37,6 +37,12 @@ crossValidation <- function(responseData, modelTypes, folds = 10, replications =
   if (!is.matrix(responseData)&!is.data.frame(responseData)) {
     stop("The responseData needs to be a matrix or data.frame with individuals on the rows and items on the columns.")
   }
+  valid_models <- c("1PL", "2PL", "PCM", "PCM2", "RSM", "GPCM", "2PL.groups")
+  invalid <- setdiff(modelTypes, valid_models)
+  if (length(invalid) > 0) {
+    stop("Unrecognized modelTypes: ", paste(invalid, collapse = ", "),
+         ". Must be one of: ", paste(valid_models, collapse = ", "))
+  }
   if (is.null(seed)) {
     seed <- sample(1:1e8, size = 1)
     set.seed(seed)
@@ -112,7 +118,7 @@ crossValidation <- function(responseData, modelTypes, folds = 10, replications =
 
 
         # separate the data into inSample and outSample prior to model estimation
-        inSample <- responseData[foldAssignment[[i]]!=k,]
+        inSample <- responseData[foldAssignment[[i]]!=k, , drop = FALSE]
         outSample <- matrix(responseData[foldAssignment[[i]]==k,], ncol = ncol(responseData))
 
         if (modelTypes[j] %in% c("1PL", "PCM", "PCM2", "RSM")) {
@@ -122,13 +128,15 @@ crossValidation <- function(responseData, modelTypes, folds = 10, replications =
         }
 
         if (loocv) {
-          if (rowSums(outSample)==0) {
+          if (all(is.na(outSample))) {
             testModels[[j]] <- NULL
             testModels[[j]]$ic$loglike <- NA
           } else if (modelTypes[j] %in% c("1PL", "PCM", "PCM2", "RSM")) {
-            testModels[[j]] <- do.call(tam.mml.loocv, c(list(resp = outSample, irtmodel = modelTypes[j], maxKiInput = rep(max(responseData), times = ncol(responseData)), xsi.fixed = trainModels[[j]]$xsi.fixed.estimated, xsi.inits = trainModels[[j]]$xsi.fixed.estimated, verbose = FALSE), dots))
+            testModels[[j]] <- tryCatch(do.call(tam.mml.loocv, c(list(resp = outSample, irtmodel = modelTypes[j], maxKiInput = rep(max(responseData), times = ncol(responseData)), xsi.fixed = trainModels[[j]]$xsi.fixed.estimated, xsi.inits = trainModels[[j]]$xsi.fixed.estimated, verbose = FALSE), dots)),
+                                        error = function(e) return(NA))
           } else if (modelTypes[j] %in% c("2PL", "GPCM", "2PL.groups")) {
-            testModels[[j]] <- do.call(tam.mml.2pl.loocv, c(list(resp = outSample, irtmodel = modelTypes[j], maxKiInput = rep(max(responseData), times = ncol(responseData)), xsi.fixed = trainModels[[j]]$xsi.fixed.estimated, xsi.inits = trainModels[[j]]$xsi.fixed.estimated, B.fixed = cbind(trainModels[[j]]$B.fixed.estimated, trainModels[[j]]$B.fixed.estimated[, 4]), verbose = FALSE), dots))
+            testModels[[j]] <- tryCatch(do.call(tam.mml.2pl.loocv, c(list(resp = outSample, irtmodel = modelTypes[j], maxKiInput = rep(max(responseData), times = ncol(responseData)), xsi.fixed = trainModels[[j]]$xsi.fixed.estimated, xsi.inits = trainModels[[j]]$xsi.fixed.estimated, B.fixed = cbind(trainModels[[j]]$B.fixed.estimated, trainModels[[j]]$B.fixed.estimated[, 4]), verbose = FALSE), dots)),
+                                        error = function(e) return(NA))
           }
         } else {
           if (modelTypes[j] %in% c("1PL", "PCM", "PCM2", "RSM")) {

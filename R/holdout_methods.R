@@ -35,6 +35,12 @@ holdout = function(responseData, modelTypes, proportion, replications, indicator
   if (!is.matrix(responseData)&!is.data.frame(responseData)) {
     stop("The responseData needs to be a matrix or data.frame with individuals on the rows and items on the columns.")
   }
+  valid_models <- c("1PL", "2PL", "PCM", "PCM2", "RSM", "GPCM", "2PL.groups")
+  invalid <- setdiff(modelTypes, valid_models)
+  if (length(invalid) > 0) {
+    stop("Unrecognized modelTypes: ", paste(invalid, collapse = ", "),
+         ". Must be one of: ", paste(valid_models, collapse = ", "))
+  }
   if (is.null(seed)) {
     seed <- sample(1:1e8, size = 1)
     set.seed(seed)
@@ -79,8 +85,8 @@ holdout = function(responseData, modelTypes, proportion, replications, indicator
     # split data into training and testing sets
 
     testSampleRows <- sample(1:nrow(responseData), size = proportion*nrow(responseData), replace = F)
-    testData[[i]] <- responseData[testSampleRows,]
-    trainData[[i]] <- responseData[-testSampleRows,]
+    testData[[i]] <- responseData[testSampleRows, , drop = FALSE]
+    trainData[[i]] <- responseData[-testSampleRows, , drop = FALSE]
 
     for (j in 1:length(modelTypes)) {
 

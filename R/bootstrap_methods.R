@@ -36,6 +36,12 @@ simpleBootstrap <- function(responseData, modelTypes, bootSize = 50, replication
   if (!is.matrix(responseData)&!is.data.frame(responseData)) {
     stop("The responseData needs to be a matrix or data.frame with individuals on the rows and items on the columns.")
   }
+  valid_models <- c("1PL", "2PL", "PCM", "PCM2", "RSM", "GPCM", "2PL.groups")
+  invalid <- setdiff(modelTypes, valid_models)
+  if (length(invalid) > 0) {
+    stop("Unrecognized modelTypes: ", paste(invalid, collapse = ", "),
+         ". Must be one of: ", paste(valid_models, collapse = ", "))
+  }
   if (is.null(seed)) {
     seed <- sample(1:1e8, size = 1)
     set.seed(seed)
@@ -76,7 +82,10 @@ simpleBootstrap <- function(responseData, modelTypes, bootSize = 50, replication
 
   AICval <- AICCval <- BICval <- LLRtest <- loobLLRtest <- resubLLRtest <- boot632LLRtest <- vector('list', length = replications)
 
-  if (leaveOneOut) boot632AIC <- boot632AICc <- boot632BIC <- boot632LLRtest <- vector('list', length = replications)
+  if (leaveOneOut) {
+    resubAIC <- resubAICc <- resubBIC <- vector('list', length = replications)
+    boot632AIC <- boot632AICc <- boot632BIC <- boot632LLRtest <- vector('list', length = replications)
+  }
 
   for (i in 1:replications) {
 
@@ -200,7 +209,7 @@ simpleBootstrap <- function(responseData, modelTypes, bootSize = 50, replication
   results$AIC <- AICval
   results$AICc <- AICCval
   results$BIC <- BICval
-  results$`-2 log-Likelihood Ratio Test` <- ifelse(leaveOneOut, loobLLRtest, LLRtest)
+  results$`-2 log-Likelihood Ratio Test` <- if (leaveOneOut) loobLLRtest else LLRtest
   results$warnings <- warningAttr(AICval, warningIndicator)
   results$time <- c(startTime, endTime)
   if (leaveOneOut) {
@@ -255,6 +264,12 @@ kfoldBootstrap <- function(responseData, modelTypes, bootSize = 50, folds = 10, 
 
   if (!is.matrix(responseData)&!is.data.frame(responseData)) {
     stop("The responseData needs to be a matrix or data.frame with individuals on the rows and items on the columns.")
+  }
+  valid_models <- c("1PL", "2PL", "PCM", "PCM2", "RSM", "GPCM", "2PL.groups")
+  invalid <- setdiff(modelTypes, valid_models)
+  if (length(invalid) > 0) {
+    stop("Unrecognized modelTypes: ", paste(invalid, collapse = ", "),
+         ". Must be one of: ", paste(valid_models, collapse = ", "))
   }
   if (is.null(seed)) {
     seed <- sample(1:1e8, size = 1)

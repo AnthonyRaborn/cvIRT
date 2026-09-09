@@ -330,6 +330,24 @@ bestModel <- function(results, alpha = .05) {
 
     logLikResults <- lapply(selectListElement(lapply(results$`-2 log-Likelihood Ratio Test`, selectRow, "Mean:")), colMeans)
 
+  } else if ("cvIRTloob" %in% class(results)) {
+    allAIC <- do.call(rbind, results$AIC)
+    meanAIC <- colMeans(allAIC)
+    AIC = meanAIC[which.min(meanAIC)]
+    names(AIC) = names(which.min(meanAIC))
+
+    allBIC <- do.call(rbind, results$BIC)
+    meanBIC <- colMeans(allBIC)
+    BIC = meanBIC[which.min(meanBIC)]
+    names(BIC) = names(which.min(meanBIC))
+
+    allAICc <- do.call(rbind, results$AICc)
+    meanAICc <- colMeans(allAICc)
+    AICc = meanAICc[which.min(meanAICc)]
+    names(AICc) = names(which.min(meanAICc))
+
+    logLikResults <- lapply(selectListElement(lapply(results$`-2 log-Likelihood Ratio Test`, selectRow, "Leave One Out Bootstrap:")), colMeans)
+
   } else if ("cvIRTresub" %in% class(results)) {
     AIC = results$AIC[1, which.min(results$AIC[1,])]
     names(AIC) = names(which.min(results$AIC[1,]))
