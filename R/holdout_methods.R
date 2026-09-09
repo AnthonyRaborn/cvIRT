@@ -29,6 +29,8 @@
 holdout = function(responseData, modelTypes, proportion, replications, indicator = TRUE, ..., seed = NULL, type = "person") {
 
   startTime <- Sys.time()
+  dots <- list(...)
+  dots[c("verbose", "irtmodel")] <- NULL
 
   if (!is.matrix(responseData)&!is.data.frame(responseData)) {
     stop("The responseData needs to be a matrix or data.frame with individuals on the rows and items on the columns.")
@@ -85,19 +87,11 @@ holdout = function(responseData, modelTypes, proportion, replications, indicator
       if (indicator) cat(paste0("\r Replication: ", i, " of ", replications, ". Model: ", modelTypes[j], ".   "))
 
       if (modelTypes[j] %in% c("1PL", "PCM", "PCM2", "RSM")) {
-        # estimate each model on training set
-    trainModel[[i]][[j]] <- TAM::tam.mml(trainData[[i]], irtmodel = modelTypes[j], verbose = F, ...)
-
-    # estimate each model on testing set
-
-    testModel[[i]][[j]] <- TAM::tam.mml(testData[[i]], irtmodel = modelTypes[j], xsi.fixed = trainModel[[i]][[j]]$xsi.fixed.estimated, verbose = F, ...)
+        trainModel[[i]][[j]] <- do.call(TAM::tam.mml, c(list(resp = trainData[[i]], irtmodel = modelTypes[j], verbose = FALSE), dots))
+        testModel[[i]][[j]] <- do.call(TAM::tam.mml, c(list(resp = testData[[i]], irtmodel = modelTypes[j], xsi.fixed = trainModel[[i]][[j]]$xsi.fixed.estimated, verbose = FALSE), dots))
       } else if (modelTypes[j] %in% c("2PL", "GPCM", "2PL.groups")) {
-        # estimate each model on training set
-          trainModel[[i]][[j]] <- TAM::tam.mml.2pl(trainData[[i]], irtmodel = modelTypes[j], verbose = F, ...)
-
-          # estimate each model on testing set
-
-          testModel[[i]][[j]] <- TAM::tam.mml.2pl(testData[[i]], irtmodel = modelTypes[j], xsi.fixed = trainModel[[i]][[j]]$xsi.fixed.estimated, verbose = F, ...)
+        trainModel[[i]][[j]] <- do.call(TAM::tam.mml.2pl, c(list(resp = trainData[[i]], irtmodel = modelTypes[j], verbose = FALSE), dots))
+        testModel[[i]][[j]] <- do.call(TAM::tam.mml.2pl, c(list(resp = testData[[i]], irtmodel = modelTypes[j], xsi.fixed = trainModel[[i]][[j]]$xsi.fixed.estimated, verbose = FALSE), dots))
 
       }
 

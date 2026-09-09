@@ -30,6 +30,8 @@
 simpleBootstrap <- function(responseData, modelTypes, bootSize = 50, replications = 1, leaveOneOut = F, indicator = TRUE, ..., seed = NULL, type = "person") {
 
   startTime <- Sys.time()
+  dots <- list(...)
+  dots[c("verbose", "irtmodel")] <- NULL
 
   if (!is.matrix(responseData)&!is.data.frame(responseData)) {
     stop("The responseData needs to be a matrix or data.frame with individuals on the rows and items on the columns.")
@@ -116,10 +118,9 @@ simpleBootstrap <- function(responseData, modelTypes, bootSize = 50, replication
 
       # estimate model on bootstrap sample
         if (modelTypes[j] %in% c("1PL", "PCM", "PCM2", "RSM")) {
-      testModels[[b]][[j]] <- TAM::tam.mml(responseData[bootSamples[[i]][[b]],], irtmodel = modelTypes[j], verbose = F, ...)
+          testModels[[b]][[j]] <- do.call(TAM::tam.mml, c(list(resp = responseData[bootSamples[[i]][[b]],], irtmodel = modelTypes[j], verbose = FALSE), dots))
         } else if (modelTypes[j] %in% c("2PL", "GPCM", "2PL.groups")) {
-          testModels[[b]][[j]] <- TAM::tam.mml.2pl(responseData[bootSamples[[i]][[b]],], irtmodel = modelTypes[j], verbose = F, ...)
-
+          testModels[[b]][[j]] <- do.call(TAM::tam.mml.2pl, c(list(resp = responseData[bootSamples[[i]][[b]],], irtmodel = modelTypes[j], verbose = FALSE), dots))
         }
 
         # extract CV likelihood and number of parameters
@@ -250,6 +251,8 @@ simpleBootstrap <- function(responseData, modelTypes, bootSize = 50, replication
 kfoldBootstrap <- function(responseData, modelTypes, bootSize = 50, folds = 10, replications = 1, indicator = TRUE, ..., seed = NULL, type = "person") {
 
   startTime <- Sys.time()
+  dots <- list(...)
+  dots[c("verbose", "irtmodel")] <- NULL
 
   if (!is.matrix(responseData)&!is.data.frame(responseData)) {
     stop("The responseData needs to be a matrix or data.frame with individuals on the rows and items on the columns.")
@@ -332,10 +335,9 @@ kfoldBootstrap <- function(responseData, modelTypes, bootSize = 50, folds = 10, 
 
         # estimate model on bootstrap sample
         if (modelTypes[j] %in% c("1PL", "PCM", "PCM2", "RSM")) {
-          testModels[[k]][[b]][[j]] <- TAM::tam.mml(responseData[bootSamples[[i]][[k]][[b]],], irtmodel = modelTypes[j], verbose = F)
+          testModels[[k]][[b]][[j]] <- do.call(TAM::tam.mml, c(list(resp = responseData[bootSamples[[i]][[k]][[b]],], irtmodel = modelTypes[j], verbose = FALSE), dots))
         } else if (modelTypes[j] %in% c("2PL", "GPCM", "2PL.groups")) {
-          testModels[[k]][[b]][[j]] <- TAM::tam.mml.2pl(responseData[bootSamples[[i]][[k]][[b]],], irtmodel = modelTypes[j], verbose = F)
-
+          testModels[[k]][[b]][[j]] <- do.call(TAM::tam.mml.2pl, c(list(resp = responseData[bootSamples[[i]][[k]][[b]],], irtmodel = modelTypes[j], verbose = FALSE), dots))
         }
 
         # extract CV likelihood and number of parameters

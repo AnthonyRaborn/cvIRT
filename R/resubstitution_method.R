@@ -24,6 +24,8 @@
 resubstitution = function(responseData, modelTypes, indicator = TRUE, ..., type = "person") {
 
   startTime <- Sys.time()
+  dots <- list(...)
+  dots[c("verbose", "irtmodel")] <- NULL
 
   if (!is.matrix(responseData)&!is.data.frame(responseData)) {
     stop("The responseData needs to be a matrix or data.frame with individuals on the rows and items on the columns.")
@@ -48,11 +50,10 @@ resubstitution = function(responseData, modelTypes, indicator = TRUE, ..., type 
 
       if (modelTypes[j] %in% c("1PL", "PCM", "PCM2", "RSM")) {
         # estimate each model on the data
-        trainModel[[j]]<- TAM::tam.mml(responseData, irtmodel = modelTypes[j], verbose = F, ...)
+        trainModel[[j]] <- do.call(TAM::tam.mml, c(list(resp = responseData, irtmodel = modelTypes[j], verbose = FALSE), dots))
 
       } else if (modelTypes[j] %in% c("2PL", "GPCM", "2PL.groups")) {
-        # estimate each model on the data
-        trainModel[[j]] <- TAM::tam.mml.2pl(responseData, irtmodel = modelTypes[j], verbose = F, ...)
+        trainModel[[j]] <- do.call(TAM::tam.mml.2pl, c(list(resp = responseData, irtmodel = modelTypes[j], verbose = FALSE), dots))
 
       }
 
