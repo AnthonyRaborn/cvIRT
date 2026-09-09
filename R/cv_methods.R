@@ -142,7 +142,7 @@ crossValidation <- function(responseData, modelTypes, folds = 10, replications =
 
           }
         }
-        if (is.na(testModels[[j]])) {
+        if (identical(testModels[[j]], NA) || is.null(testModels[[j]])) {
           testLikList[[i]][k,j] = NA
           nParamTrainList[[i]][k,j] = trainModels[[j]]$ic$np
         } else {
