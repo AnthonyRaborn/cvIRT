@@ -31,8 +31,7 @@ holdout = function(responseData, modelTypes, proportion, replications, indicator
   startTime <- Sys.time()
 
   if (!is.matrix(responseData)&!is.data.frame(responseData)) {
-    stop("The responseData needs to be a matrix or data.frame with individuals on the rows and items on the columns.",
-         immediate. = T)
+    stop("The responseData needs to be a matrix or data.frame with individuals on the rows and items on the columns.")
   }
   if (is.null(seed)) {
     seed <- sample(1:1e8, size = 1)
@@ -112,6 +111,7 @@ holdout = function(responseData, modelTypes, proportion, replications, indicator
 
   # calculate model selection criteria for each replication and model type
   AICval <- cvAIC(loglikelihood = testLik, numParams = nParamTrain, method = "holdout")
+  if (!is.null(attr(AICval, "warning"))) warningIndicator <- seq_len(replications)
   AICCval <- cvAICc(loglikelihood = testLik, numParams = nParamTrain, n = proportion*nrow(responseData), method = "holdout")
   BICval <- cvBIC(loglikelihood = testLik, numParams = nParamTrain, n = proportion*nrow(responseData), method = "holdout")
   if (length(modelTypes) > 1){
@@ -127,6 +127,7 @@ holdout = function(responseData, modelTypes, proportion, replications, indicator
   # create the results
 
   results <- list()
+  results$call <- match.call()
   results$seed <- seed
   results$trainData <- trainData
   results$testData <- testData

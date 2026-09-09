@@ -26,8 +26,7 @@ resubstitution = function(responseData, modelTypes, indicator = TRUE, ..., type 
   startTime <- Sys.time()
 
   if (!is.matrix(responseData)&!is.data.frame(responseData)) {
-    stop("The responseData needs to be a matrix or data.frame with individuals on the rows and items on the columns.",
-         immediate. = T)
+    stop("The responseData needs to be a matrix or data.frame with individuals on the rows and items on the columns.")
   }
 
   if (!is.logical(indicator)) {
@@ -82,6 +81,7 @@ resubstitution = function(responseData, modelTypes, indicator = TRUE, ..., type 
   # create the results
 
   results <- list()
+  results$call <- match.call()
   results$data <- responseData
   results$testLik <- testLik
   results$nModelParams <- nParamTrain
