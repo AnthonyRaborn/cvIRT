@@ -1,5 +1,5 @@
 # Tests for input validation in exported functions.
-# These test the guard clauses before any TAM model fitting runs.
+# These test the guard clauses before any mirt model fitting runs.
 
 test_that("crossValidation rejects non-matrix input", {
   expect_error(crossValidation("not a matrix", modelTypes = "1PL"),
@@ -26,6 +26,12 @@ test_that("crossValidation warns on invalid folds", {
     ),
     "folds"
   )
+})
+
+test_that("2PL.groups is rejected with clear error", {
+  m <- matrix(sample(0:1, 50, replace = TRUE), nrow = 10, ncol = 5)
+  expect_error(resubstitution(m, modelTypes = "2PL.groups"),
+               "Unrecognized modelTypes")
 })
 
 test_that("crossValidation warns on invalid replications", {
