@@ -292,6 +292,15 @@ selectListElement <- function(x) {
   return(temp)
 }
 
+#' Select the Best IRT Model
+#'
+#' @param results A \code{cvIRT} object from one of the cross-validation or bootstrap functions.
+#' @param alpha Significance level for the Holm-Bonferroni corrected log-likelihood ratio tests. Default is 0.05.
+#'
+#' @return An object of class \code{cvIRT.bestModels} with components:
+#' \item{info}{A named numeric vector of the best model by AIC, BIC, and AICc.}
+#' \item{lrt}{A list of the log-likelihood ratio test result with the selected best model.}
+#'
 #' @export
 bestModel <- function(results, alpha = .05) {
   if ( !('cvIRT' %in% class(results)) ) {
@@ -369,6 +378,9 @@ bestModel <- function(results, alpha = .05) {
 
 }
 
+#' @param x A \code{cvIRT.bestModels} object.
+#' @param ... Ignored.
+#' @rdname bestModel
 #' @export
 print.cvIRT.bestModels <- function(x, ...) {
   cat("The best model for each selection criteria:")
@@ -378,6 +390,12 @@ print.cvIRT.bestModels <- function(x, ...) {
   cat(paste0("\nLRT: ", x$lrt[[1]][4], ".\tp-value: ", signif(as.numeric(x$lrt[[1]][3]),3), ".\tModels Compared: ", names(x$lrt)))
 }
 
+#' Extract Best Model Names
+#'
+#' @param x A \code{cvIRT.bestModels} object.
+#'
+#' @return A named character vector with the best model for each criterion (AIC, BIC, AICc, LRT).
+#'
 #' @export
 extract.cvIRT.bestModels <- function(x) {
   AIC <- names(x$info[1])

@@ -34,8 +34,6 @@ kfoldBootstrap(
 \item{seed}{Either a positive integer setting the random seed, or `NULL`.}
 
 \item{type}{A character vector specifying whether the validation treats the "person" or the "item" as the unit of observation. Default is "person".}
-
-\item{leaveOneOut}{A logical value indicating whether to use `leaveOneOut` bootstrap. Not suggested for use.}
 }
 \value{
 A list object of class "cvIRT" with the following values:

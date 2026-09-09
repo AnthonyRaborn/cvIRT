@@ -225,7 +225,6 @@ simpleBootstrap <- function(responseData, modelTypes, bootSize = 50, replication
 #' @param bootSize An integer value greater than 0 that indicates the number of bootstrap samples to draw.
 #' @param folds An integer value indicating the number of cross-validation folds to split the data into during the cross-validation process.
 #' @param replications The number of replications of the bootstrap procedure to perform. Not suggested to use as for the standard bootstrap changing the `bootSize` is more efficient.
-#' @param leaveOneOut A logical value indicating whether to use `leaveOneOut` bootstrap. Not suggested for use.
 #' @param indicator A logical value that controls the progress printing.
 #' @param ... Further arguments to be passed to the `tam` function.
 #' @param seed Either a positive integer setting the random seed, or `NULL`.
