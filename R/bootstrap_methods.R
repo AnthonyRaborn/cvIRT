@@ -96,7 +96,7 @@ simpleBootstrap <- function(responseData, modelTypes, bootSize = 50, replication
 
         for (b in 1:bootSize) {
 
-          leftOutIndex[[n]][b] <-  n %in% unlist(bootSamples[[i]][[b]])
+          leftOutIndex[[n]][b] <-  !(n %in% unlist(bootSamples[[i]][[b]]))
           }
       }
 
@@ -310,11 +310,13 @@ kfoldBootstrap <- function(responseData, modelTypes, bootSize = 50, folds = 10, 
 
     for (k in 1:folds){
 
+      trainFold <- responseData[foldAssignment[[i]]!=k, , drop = FALSE]
+
       for (b in 1:bootSize) {
 
-        # create the bootstrap samples
-        bootSamples[[i]][[k]][[b]] <- sample(x = 1:nrow(responseData[foldAssignment[[i]]!=k,]),
-                                             size = nrow(responseData[foldAssignment[[i]]!=k,]), replace = TRUE)
+        # create the bootstrap samples (indices within trainFold)
+        bootSamples[[i]][[k]][[b]] <- sample(x = 1:nrow(trainFold),
+                                             size = nrow(trainFold), replace = TRUE)
 
       }
 
@@ -334,9 +336,9 @@ kfoldBootstrap <- function(responseData, modelTypes, bootSize = 50, folds = 10, 
 
         # estimate model on bootstrap sample
         if (modelTypes[j] %in% c("1PL", "PCM", "PCM2", "RSM")) {
-          testModels[[k]][[b]][[j]] <- do.call(TAM::tam.mml, c(list(resp = responseData[bootSamples[[i]][[k]][[b]],], irtmodel = modelTypes[j], verbose = FALSE), dots))
+          testModels[[k]][[b]][[j]] <- do.call(TAM::tam.mml, c(list(resp = trainFold[bootSamples[[i]][[k]][[b]],], irtmodel = modelTypes[j], verbose = FALSE), dots))
         } else if (modelTypes[j] %in% c("2PL", "GPCM", "2PL.groups")) {
-          testModels[[k]][[b]][[j]] <- do.call(TAM::tam.mml.2pl, c(list(resp = responseData[bootSamples[[i]][[k]][[b]],], irtmodel = modelTypes[j], verbose = FALSE), dots))
+          testModels[[k]][[b]][[j]] <- do.call(TAM::tam.mml.2pl, c(list(resp = trainFold[bootSamples[[i]][[k]][[b]],], irtmodel = modelTypes[j], verbose = FALSE), dots))
         }
 
         # extract CV likelihood and number of parameters

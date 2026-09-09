@@ -202,11 +202,7 @@ cvLogLikRatio <- function(loglikelihood, numParams, models, method) {
   for (i in 2:ncol(loglikelihood)) {
     modelsTested[i-1] = paste0(models[i-1], " vs. ", models[i])
     degFree[,i-1] = abs(numParams[,i] - numParams[,i-1])
-    if (numParams[1,2] - numParams[1,1] < 0) {
-      testStat[,i-1] = 2*(loglikelihood[,i-1] - loglikelihood[,i])
-    } else {
-      testStat[,i-1] = 2*(loglikelihood[,i] - loglikelihood[,i-1])
-    }
+    testStat[,i-1] = abs(2*(loglikelihood[,i] - loglikelihood[,i-1]))
   }
   pval = stats::pchisq(testStat, df = degFree, lower.tail = F)
 
@@ -348,22 +344,26 @@ bestModel <- function(results, alpha = .05) {
 
   }
 
-  # Holm-Bonferroni adjustment: no significance means simpler model wins
+  # Holm-Bonferroni step-down: reject in order, stop at first non-rejection
   logLikpval <- selectListElement(logLikResults)$`p-value`
-  orderedPval <- logLikpval[order(logLikpval)]
+  pvalOrder <- order(logLikpval)
+  orderedPval <- logLikpval[pvalOrder]
   alphaHB <- alpha / (length(logLikResults):1)
-  significantIdx <- which(orderedPval < alphaHB)
+  firstFail <- match(FALSE, orderedPval < alphaHB)
+  nReject <- if (is.na(firstFail)) length(orderedPval) else firstFail - 1
 
-  if (length(significantIdx) == 0) {
+  if (nReject == 0) {
     logLikBestResult <- logLikResults[1]
     logLikBest <- regmatches(names(logLikBestResult),
-                             regexpr("[[:alnum:]]+(?= vs.)",
+                             regexpr("[[:alnum:].]+(?= vs.)",
                                      names(logLikBestResult),
                                      perl = T))
   } else {
-    logLikBestResult <- logLikResults[max(which(logLikpval < alpha))]
+    # Among rejected tests, select the last one (in original order)
+    rejectedOrigIdx <- sort(pvalOrder[1:nReject])
+    logLikBestResult <- logLikResults[max(rejectedOrigIdx)]
     logLikBest <- regmatches(names(logLikBestResult),
-                           regexpr("(?<=vs. )[[:alnum:]]+",
+                           regexpr("(?<=vs. )[[:alnum:].]+",
                                    names(logLikBestResult),
                                    perl = T))
   }
@@ -460,7 +460,7 @@ resubLogLikEst <- function(models, responses) {
 }
 
 loob632logLikEst <- function(loobEst, resubEst) {
-  results = t(as.matrix(.632*loobEst[nrow(loobEst),] - .368*resubEst[nrow(resubEst),]))
+  results = t(as.matrix(.632*loobEst[nrow(loobEst),] + .368*resubEst[nrow(resubEst),]))
   rownames(results) = ".632 Bootstrap log-Likelihood:"
   return(results)
 }
