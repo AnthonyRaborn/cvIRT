@@ -59,7 +59,7 @@ holdout = function(responseData, modelTypes, proportion, replications, indicator
     proportion = .33
   }
 
-  if (!is.numeric(replications) | replications < 0) {
+  if (!is.numeric(replications) | replications < 1) {
     warning("The `replications` argument needs to be a positive integer! Defaulting to `replications = 1`.",
             immediate. = T)
     replications = 1
@@ -97,7 +97,7 @@ holdout = function(responseData, modelTypes, proportion, replications, indicator
         testModel[[i]][[j]] <- do.call(TAM::tam.mml, c(list(resp = testData[[i]], irtmodel = modelTypes[j], xsi.fixed = trainModel[[i]][[j]]$xsi.fixed.estimated, verbose = FALSE), dots))
       } else if (modelTypes[j] %in% c("2PL", "GPCM", "2PL.groups")) {
         trainModel[[i]][[j]] <- do.call(TAM::tam.mml.2pl, c(list(resp = trainData[[i]], irtmodel = modelTypes[j], verbose = FALSE), dots))
-        testModel[[i]][[j]] <- do.call(TAM::tam.mml.2pl, c(list(resp = testData[[i]], irtmodel = modelTypes[j], xsi.fixed = trainModel[[i]][[j]]$xsi.fixed.estimated, verbose = FALSE), dots))
+        testModel[[i]][[j]] <- do.call(TAM::tam.mml.2pl, c(list(resp = testData[[i]], irtmodel = modelTypes[j], xsi.fixed = trainModel[[i]][[j]]$xsi.fixed.estimated, B.fixed = trainModel[[i]][[j]]$B.fixed.estimated, verbose = FALSE), dots))
 
       }
 

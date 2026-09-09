@@ -23,10 +23,7 @@ cvAIC <- function(loglikelihood, numParams, method) {
   AIC = -2*loglikelihood + 2*numParams
   }
 
-  if (method == "resubstitution") {
-    rownames(AIC) = "Resubstitution AIC:"
-    return(AIC)
-  } else if (method == "holdout") {
+  if (method == "holdout") {
   rownames(AIC) = paste0("Replication ", 1:nrow(AIC), ":")
   } else if (method == "kfold") {
     rownames(AIC) = paste0("Fold ", 1:nrow(AIC), ":")
@@ -50,12 +47,29 @@ cvAIC <- function(loglikelihood, numParams, method) {
 
 cvAICc <- function(loglikelihood, numParams, n, method) {
   if (method == "loob"|method=="resub") {
+    if (any(n <= numParams[1,] + 2)) {
+      warning("AICc correction is undefined when n <= numParams + 2. Returning NA for AICc.",
+              immediate. = TRUE)
+      AICc = matrix(NA_real_, nrow = 1, ncol = ncol(loglikelihood))
+      if (method=="loob") rownames(AICc) = "Leave One Out Bootstrap:" else rownames(AICc) = "Resubstitution:"
+      colnames(AICc) = colnames(loglikelihood)
+      return(AICc)
+    }
     AICc = -2*loglikelihood[nrow(loglikelihood),] + 2*numParams[1,] + (2*(numParams[1,]+2)*(numParams[1,]+1))/(n - numParams[1,]-2)
     AICc = matrix(AICc, ncol = ncol(loglikelihood))
     if (method=="loob") rownames(AICc) = "Leave One Out Bootstrap:" else rownames(AICc) = "Resubstitution:"
     colnames(AICc) = colnames(loglikelihood)
     return(AICc)
   } else if (method=="kfold bootstrap") {
+    npCheck <- do.call(rbind, numParams)
+    if (any(n <= npCheck + 2)) {
+      warning("AICc correction is undefined when n <= numParams + 2. Returning NA for AICc.",
+              immediate. = TRUE)
+      final = matrix(NA_real_, nrow = length(loglikelihood) + 1, ncol = ncol(loglikelihood[[1]]))
+      colnames(final) = colnames(loglikelihood[[1]])
+      rownames(final) = c(paste0("Fold ", 1:length(loglikelihood), " Mean AICc:"), "Mean:")
+      return(final)
+    }
     AICc = vector('list', length = length(loglikelihood))
     meanAICc = matrix(nrow = length(loglikelihood), ncol = ncol(loglikelihood[[1]]))
     for (i in 1:length(loglikelihood)) {
@@ -69,13 +83,17 @@ cvAICc <- function(loglikelihood, numParams, n, method) {
     final = rbind(meanAICc, "Mean:" = colMeans(meanAICc))
     return(final)
   } else {
-    AICc = -2*loglikelihood + 2*numParams + (2*(numParams+2)*(numParams+1))/(n - numParams -2)
+    if (any(n <= numParams + 2)) {
+      warning("AICc correction is undefined when n <= numParams + 2. Returning NA for AICc.",
+              immediate. = TRUE)
+      AICc = matrix(NA_real_, nrow = nrow(loglikelihood), ncol = ncol(loglikelihood))
+      colnames(AICc) = colnames(loglikelihood)
+    } else {
+      AICc = -2*loglikelihood + 2*numParams + (2*(numParams+2)*(numParams+1))/(n - numParams -2)
+    }
   }
 
-  if (method == "resubstitution") {
-    rownames(AICc) = "Resubstitution AICc:"
-    return(AICc)
-  } else if (method == "holdout") {
+  if (method == "holdout") {
     rownames(AICc) = paste0("Replication ", 1:nrow(AICc), ":")
   } else if (method == "kfold") {
     rownames(AICc) = paste0("Fold ", 1:nrow(AICc), ":")
@@ -115,10 +133,7 @@ cvBIC <- function(loglikelihood, numParams, n, method) {
     BIC = -2*loglikelihood + numParams*log(n)
   }
 
-  if (method == "resubstitution") {
-    rownames(BIC) = "Resubstitution BIC:"
-    return(BIC)
-  } else if (method == "holdout") {
+  if (method == "holdout") {
     rownames(BIC) = paste0("Replication ", 1:nrow(BIC), ":")
   } else if (method == "kfold") {
     rownames(BIC) = paste0("Fold ", 1:nrow(BIC), ":")
@@ -212,9 +227,7 @@ cvLogLikRatio <- function(loglikelihood, numParams, models, method) {
     temp = cbind(testStat[,i], degFree[,i], pval[,i])
     colnames(temp) = c("Test Statistic", "degrees of freedom", "p-value")
 
-    if (method == "resubstitution") {
-      rownames(temp) = "Resubstitution:"
-    } else if (method == "holdout") {
+    if (method == "holdout") {
       rownames(temp) = paste0("Replication ", 1:nrow(loglikelihood), ":")
     } else if (method == "kfold") {
       rownames(temp) = paste0("Fold ", 1:nrow(loglikelihood), ":")
@@ -426,7 +439,7 @@ extract.cvIRT.bestModels <- function(x) {
   return(final)
   }
 
-loobLogLikEst <- function(fittedModels, loobMatrix, models, responses, bootstrapSamples) {
+loobLogLikEst <- function(fittedModels, loobMatrix, models, responses, bootstrapSamples, dots = list()) {
   loobLogLik <- loobLogLikMean <- vector('list', length = length(models))
   for (j in 1:length(models)) {
     loobLogLik[[j]] <- matrix(nrow = nrow(loobMatrix), ncol = ncol(loobMatrix))
@@ -435,9 +448,9 @@ loobLogLikEst <- function(fittedModels, loobMatrix, models, responses, bootstrap
         cat(paste0("\rFitting observation ", n, " of ", nrow(loobMatrix), " with bootstrap sample ", b, " of ", length(fittedModels), " and the ", models[j], " model (", j, " of ", length(models), " models).      \t\t"))
         if (loobMatrix[n,b]) {
           if (models[j] %in% c("1PL", "PCM", "PCM2", "RSM")) {
-            tempLogLik <- tam.mml.loocv(matrix(responses[n,], ncol = ncol(responses)), irtmodel = models[j], xsi.fixed = fittedModels[[b]][[j]]$xsi.fixed.estimated, xsi.inits = fittedModels[[b]][[j]]$xsi.fixed.estimated, maxKiInput = rep(max(responses), times = ncol(responses)), verbose = F)$ic$loglike
+            tempLogLik <- do.call(tam.mml.loocv, c(list(resp = matrix(responses[n,], ncol = ncol(responses)), irtmodel = models[j], xsi.fixed = fittedModels[[b]][[j]]$xsi.fixed.estimated, xsi.inits = fittedModels[[b]][[j]]$xsi.fixed.estimated, maxKiInput = rep(max(responses), times = ncol(responses)), verbose = F), dots))$ic$loglike
           } else if (models[j] %in% c("2PL", "GPCM", "2PL.groups")) {
-            tempLogLik <- tam.mml.2pl.loocv(matrix(responses[n,], ncol = ncol(responses)), irtmodel = models[j], xsi.fixed = fittedModels[[b]][[j]]$xsi.fixed.estimated, xsi.inits = fittedModels[[b]][[j]]$xsi.fixed.estimated, maxKiInput = rep(max(responses), times = ncol(responses)), verbose = F)$ic$loglike
+            tempLogLik <- do.call(tam.mml.2pl.loocv, c(list(resp = matrix(responses[n,], ncol = ncol(responses)), irtmodel = models[j], xsi.fixed = fittedModels[[b]][[j]]$xsi.fixed.estimated, xsi.inits = fittedModels[[b]][[j]]$xsi.fixed.estimated, maxKiInput = rep(max(responses), times = ncol(responses)), verbose = F), dots))$ic$loglike
           }
           loobLogLik[[j]][n,b] <- tempLogLik
         }
@@ -452,20 +465,20 @@ loobLogLikEst <- function(fittedModels, loobMatrix, models, responses, bootstrap
   return(loobLogLikMeanFinal)
 }
 
-resubLogLikEst <- function(models, responses) {
+resubLogLikEst <- function(models, responses, dots = list()) {
   logLik <- logLikMean <- vector('list', length = length(models))
   for (j in 1:length(models)) {
     if (models[j] %in% c("1PL", "PCM", "PCM2", "RSM")) {
-      tempModel <- TAM::tam.mml(responses, irtmodel = models[j], verbose = F)
+      tempModel <- do.call(TAM::tam.mml, c(list(resp = responses, irtmodel = models[j], verbose = F), dots))
     } else if (models[j] %in% c("2PL", "GPCM", "2PL.groups")) {
-      tempModel <- TAM::tam.mml.2pl(responses, irtmodel = models[j], verbose = F)
+      tempModel <- do.call(TAM::tam.mml.2pl, c(list(resp = responses, irtmodel = models[j], verbose = F), dots))
     }
     for (n in 1:nrow(responses)) {
       cat(paste0("\rFitting observation ", n, " of ", nrow(responses), " with the ", models[j], " model (", j, " of ", length(models), " models) for resubstitution.     \t\t\t "))
       if (models[j] %in% c("1PL", "PCM", "PCM2", "RSM")) {
-        tempLik <- tam.mml.loocv(matrix(responses[n,], ncol = ncol(responses)), irtmodel = models[j], xsi.fixed = tempModel$xsi.fixed.estimated, xsi.inits = tempModel$xsi.fixed.estimated, maxKiInput = rep(max(responses), times = ncol(responses)), verbose = F)$ic$loglike
+        tempLik <- do.call(tam.mml.loocv, c(list(resp = matrix(responses[n,], ncol = ncol(responses)), irtmodel = models[j], xsi.fixed = tempModel$xsi.fixed.estimated, xsi.inits = tempModel$xsi.fixed.estimated, maxKiInput = rep(max(responses), times = ncol(responses)), verbose = F), dots))$ic$loglike
       } else if (models[j] %in% c("2PL", "GPCM", "2PL.groups")) {
-        tempLik <- tam.mml.2pl.loocv(matrix(responses[n,], ncol = ncol(responses)), irtmodel = models[j], xsi.fixed = tempModel$xsi.fixed.estimated, xsi.inits = tempModel$xsi.fixed.estimated, maxKiInput = rep(max(responses), times = ncol(responses)), verbose = F)$ic$loglike
+        tempLik <- do.call(tam.mml.2pl.loocv, c(list(resp = matrix(responses[n,], ncol = ncol(responses)), irtmodel = models[j], xsi.fixed = tempModel$xsi.fixed.estimated, xsi.inits = tempModel$xsi.fixed.estimated, maxKiInput = rep(max(responses), times = ncol(responses)), verbose = F), dots))$ic$loglike
       }
       logLik[[j]][n] <- tempLik
       names(logLik) <- models

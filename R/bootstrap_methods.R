@@ -60,7 +60,7 @@ simpleBootstrap <- function(responseData, modelTypes, bootSize = 50, replication
     bootSize = 50
   }
 
-  if (!is.numeric(replications)|replications < 0) {
+  if (!is.numeric(replications)|replications < 1) {
     warning("The `replications` argument needs to be a positive number! Defaulting to `replications = 1`.",
             immediate. = T)
     replications = 1
@@ -157,8 +157,8 @@ simpleBootstrap <- function(responseData, modelTypes, bootSize = 50, replication
   } else if (leaveOneOut) {
 
     loobLogLik <- loobLogLikEst(fittedModels = testModels, loobMatrix = usableBootSamples,
-                                models = modelTypes, responses = responseData, bootstrapSamples = bootSamples)
-    resubLogLik <- resubLogLikEst(models = modelTypes, responses = responseData)
+                                models = modelTypes, responses = responseData, bootstrapSamples = bootSamples, dots = dots)
+    resubLogLik <- resubLogLikEst(models = modelTypes, responses = responseData, dots = dots)
     boot632logLik <- loob632logLikEst(loobEst = loobLogLik, resubEst = resubLogLik)
 
     AICval[[i]] <- cvAIC(loglikelihood = loobLogLik, numParams = nParamTrainList[[i]], method = "loob")
@@ -293,9 +293,13 @@ kfoldBootstrap <- function(responseData, modelTypes, bootSize = 50, folds = 10, 
     warning("The `folds` argument needs to be positive and less than the number of observations in the data! Defaulting to `folds = 10`.",
             immediate. = T)
     folds = 10
+  } else if (folds != round(folds)) {
+    folds <- as.integer(round(folds))
+    warning("The `folds` argument was not an integer. Coercing to `folds = ", folds, "`.",
+            immediate. = T)
   }
 
-  if (!is.numeric(replications)|replications < 0) {
+  if (!is.numeric(replications)|replications < 1) {
     warning("The `replications` argument needs to be a positive number! Defaulting to `replications = 1`.",
             immediate. = T)
     replications = 1

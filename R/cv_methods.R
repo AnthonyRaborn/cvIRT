@@ -59,9 +59,13 @@ crossValidation <- function(responseData, modelTypes, folds = 10, replications =
     warning("The `folds` argument needs to be positive and less than the number of observations in the data! Defaulting to `folds = 10`.",
             immediate. = T)
     folds = 10
+  } else if (folds != round(folds)) {
+    folds <- as.integer(round(folds))
+    warning("The `folds` argument was not an integer. Coercing to `folds = ", folds, "`.",
+            immediate. = T)
   }
 
-  if (!is.numeric(replications)|replications < 0) {
+  if (!is.numeric(replications)|replications < 1) {
     warning("The `replications` argument needs to be a positive number! Defaulting to `replications = 1`.",
             immediate. = T)
     replications = 1
@@ -135,7 +139,7 @@ crossValidation <- function(responseData, modelTypes, folds = 10, replications =
             testModels[[j]] <- tryCatch(do.call(tam.mml.loocv, c(list(resp = outSample, irtmodel = modelTypes[j], maxKiInput = rep(max(responseData), times = ncol(responseData)), xsi.fixed = trainModels[[j]]$xsi.fixed.estimated, xsi.inits = trainModels[[j]]$xsi.fixed.estimated, verbose = FALSE), dots)),
                                         error = function(e) return(NA))
           } else if (modelTypes[j] %in% c("2PL", "GPCM", "2PL.groups")) {
-            testModels[[j]] <- tryCatch(do.call(tam.mml.2pl.loocv, c(list(resp = outSample, irtmodel = modelTypes[j], maxKiInput = rep(max(responseData), times = ncol(responseData)), xsi.fixed = trainModels[[j]]$xsi.fixed.estimated, xsi.inits = trainModels[[j]]$xsi.fixed.estimated, B.fixed = cbind(trainModels[[j]]$B.fixed.estimated, trainModels[[j]]$B.fixed.estimated[, 4]), verbose = FALSE), dots)),
+            testModels[[j]] <- tryCatch(do.call(tam.mml.2pl.loocv, c(list(resp = outSample, irtmodel = modelTypes[j], maxKiInput = rep(max(responseData), times = ncol(responseData)), xsi.fixed = trainModels[[j]]$xsi.fixed.estimated, xsi.inits = trainModels[[j]]$xsi.fixed.estimated, B.fixed = trainModels[[j]]$B.fixed.estimated, verbose = FALSE), dots)),
                                         error = function(e) return(NA))
           }
         } else {
@@ -143,7 +147,7 @@ crossValidation <- function(responseData, modelTypes, folds = 10, replications =
             testModels[[j]] <- tryCatch(do.call(TAM::tam.mml, c(list(resp = outSample, irtmodel = modelTypes[j], xsi.fixed = trainModels[[j]]$xsi.fixed.estimated, xsi.inits = trainModels[[j]]$xsi.fixed.estimated, verbose = FALSE), dots)),
                                         error = function(e) return(NA))
           } else if (modelTypes[j] %in% c("2PL", "GPCM", "2PL.groups")) {
-            testModels[[j]] <- tryCatch(do.call(TAM::tam.mml.2pl, c(list(resp = outSample, irtmodel = modelTypes[j], xsi.fixed = trainModels[[j]]$xsi.fixed.estimated, xsi.inits = trainModels[[j]]$xsi.fixed.estimated, verbose = FALSE), dots)),
+            testModels[[j]] <- tryCatch(do.call(TAM::tam.mml.2pl, c(list(resp = outSample, irtmodel = modelTypes[j], xsi.fixed = trainModels[[j]]$xsi.fixed.estimated, xsi.inits = trainModels[[j]]$xsi.fixed.estimated, B.fixed = trainModels[[j]]$B.fixed.estimated, verbose = FALSE), dots)),
                                         error = function(e) return(NA))
           }
         }
