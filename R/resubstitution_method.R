@@ -83,7 +83,7 @@ resubstitution = function(responseData, modelTypes, indicator = TRUE, ..., type 
 
   results <- list()
   results$data <- responseData
-  results$logLik <- logLik
+  results$testLik <- testLik
   results$nModelParams <- nParamTrain
   results$AIC <- AICval
   results$AICc <- AICCval

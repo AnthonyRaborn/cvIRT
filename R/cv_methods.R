@@ -47,7 +47,7 @@ crossValidation <- function(responseData, modelTypes, folds = 10, replications =
     set.seed(seed)
   }
 
-  if (!is.numeric(folds)&&(folds < 0 | folds > nrow(responseData))) {
+  if (!is.numeric(folds) || folds < 1 || folds > nrow(responseData)) {
     warning("The `folds` argument needs to be positive and less than the number of observations in the data! Defaulting to `folds = 10`.",
             immediate. = T)
     folds = 10

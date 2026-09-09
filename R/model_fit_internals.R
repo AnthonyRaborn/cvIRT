@@ -382,9 +382,9 @@ bestModel <- function(results, alpha = .05) {
 
 print.cvIRT.bestModels <- function(x) {
   cat("The best model for each selection criteria:")
-  cat(paste0("\nAIC: ", names(x$info[1]), ".\tValue: ", signif(x$info[1]), 3))
-  cat(paste0("\nBIC: ", names(x$info[2]), ".\tValue: ", signif(x$info[2]), 3))
-  cat(paste0("\nAICc: ", names(x$info[3]), ".\tValue: ", signif(x$info[3]), 3))
+  cat(paste0("\nAIC: ", names(x$info[1]), ".\tValue: ", signif(x$info[1], 3)))
+  cat(paste0("\nBIC: ", names(x$info[2]), ".\tValue: ", signif(x$info[2], 3)))
+  cat(paste0("\nAICc: ", names(x$info[3]), ".\tValue: ", signif(x$info[3], 3)))
   cat(paste0("\nLRT: ", x$lrt[[1]][4], ".\tp-value: ", signif(as.numeric(x$lrt[[1]][3]),3), ".\tModels Compared: ", names(x$lrt)))
 }
 
@@ -399,60 +399,4 @@ extract.cvIRT.bestModels <- function(x) {
   return(final)
   }
 
-### Removed ####
-# loobLogLikEst <- function(fittedModels, loobMatrix, models, responses, bootstrapSamples) {
-#   loobLogLik <- loobLogLikMean <- vector('list', length = length(models))
-#   for (j in 1:length(models)) {
-#     loobLogLik[[j]] <- matrix(nrow = nrow(loobMatrix), ncol = ncol(loobMatrix))
-#     for (n in 1:nrow(loobMatrix)) {
-#       for (b in 1:length(fittedModels)) {
-#         cat(paste0("\rFitting observation ", n, " of ", nrow(loobMatrix), " with bootstrap sample ", b, " of ", length(fittedModels), " and the ", models[j], " model (", j, " of ", length(models), " models).      \t\t"))
-#         if (loobMatrix[n,b]) {
-#           if (models[j] %in% c("1PL", "PCM", "PCM2", "RSM")) {
-#             tempLogLik <- tam.mml.loocv(matrix(responses[n,], ncol = ncol(responses)), irtmodel = models[j], xsi.fixed = fittedModels[[b]][[j]]$xsi.fixed.estimated, xsi.inits = fittedModels[[b]][[j]]$xsi.fixed.estimated, maxKiInput = rep(max(responses), times = ncol(responses)), verbose = F)$ic$loglike
-#           } else if (models[j] %in% c("2PL", "GPCM", "2PL.groups")) {
-#             tempLogLik <- tam.mml.2pl.loocv(matrix(responses[n,], ncol = ncol(responses)), irtmodel = models[j], xsi.fixed = fittedModels[[b]][[j]]$xsi.fixed.estimated, xsi.inits = fittedModels[[b]][[j]]$xsi.fixed.estimated, maxKiInput = rep(max(responses), times = ncol(responses)), verbose = F)$ic$loglike
-#           }
-#           loobLogLik[[j]][n,b] <- tempLogLik
-#         }
-#       }
-#     }
-#   }
-#   loobLogLik <- lapply(loobLogLik, rowMeans, na.rm = T)
-#   loobLogLikMean <- sapply(loobLogLik, cbind)
-#   rownames(loobLogLikMean) <- paste0("Observation ", 1:nrow(loobLogLikMean), ":")
-#   colnames(loobLogLikMean) <- models
-#   loobLogLikMeanFinal <- rbind(loobLogLikMean, "Leave-One-Out Mean:" = colMeans(loobLogLikMean))
-#   return(loobLogLikMeanFinal)
-# }
-# resubLogLikEst <- function(models, responses) {
-#   logLik <- logLikMean <- vector('list', length = length(models))
-#   for (j in 1:length(models)) {
-#     if (models[j] %in% c("1PL", "PCM", "PCM2", "RSM")) {
-#       tempModel <- TAM::tam.mml(responses, irtmodel = models[j], verbose = F)
-#     } else if (models[j] %in% c("2PL", "GPCM", "2PL.groups")) {
-#       tempModel <- TAM::tam.mml.2pl(responses, irtmodel = models[j], verbose = F)
-#     }
-#     for (n in 1:nrow(responses)) {
-#       cat(paste0("\rFitting observation ", n, " of ", nrow(responses), " with the ", models[j], " model (", j, " of ", length(models), " models) for resubstitution.     \t\t\t "))
-#       if (models[j] %in% c("1PL", "PCM", "PCM2", "RSM")) {
-#         tempLik <- tam.mml.loocv(matrix(responses[n,], ncol = ncol(responses)), irtmodel = models[j], xsi.fixed = tempModel$xsi.fixed.estimated, xsi.inits = tempModel$xsi.fixed.estimated, maxKiInput = rep(max(responses), times = ncol(responses)), verbose = F)$ic$loglike
-#       } else if (models[j] %in% c("2PL", "GPCM", "2PL.groups")) {
-#         tempLik <- tam.mml.2pl.loocv(matrix(responses[n,], ncol = ncol(responses)), irtmodel = models[j], xsi.fixed = tempModel$xsi.fixed.estimated, xsi.inits = tempModel$xsi.fixed.estimated, maxKiInput = rep(max(responses), times = ncol(responses)), verbose = F)$ic$loglike
-#       }
-#       logLik[[j]][n] <- tempLik
-#       names(logLik) <- models
-#     }
-#   }
-#   resubLogLikMean <- sapply(logLik, cbind)
-#   rownames(resubLogLikMean) <- paste0("Observation ", 1:nrow(resubLogLikMean), ":")
-#   resubLogLikMeanFinal <- rbind(resubLogLikMean, "Resubstitution Mean:" = colMeans(resubLogLikMean))
-#   return(resubLogLikMeanFinal)
-# }
-#
-# loob632logLikEst <- function(loobEst, resubEst) {
-#   results = t(as.matrix(.632*loobEst[nrow(loobEst),] - .368*resubEst[nrow(resubEst),]))
-#   rownames(results) = ".632 Bootstrap log-Likelihood:"
-#   return(results)
-# }
 

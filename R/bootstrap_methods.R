@@ -46,10 +46,10 @@ simpleBootstrap <- function(responseData, modelTypes, bootSize = 50, replication
     set.seed(seed)
   }
 
-  if (!is.integer(bootSize)&&(bootSize < 0)) {
-    warning("The `bootSize` argument needs to be positive! Defaulting to `bootSize = 50`.",
+  if (!is.numeric(bootSize) || bootSize < 1) {
+    warning("The `bootSize` argument needs to be a positive number! Defaulting to `bootSize = 50`.",
             immediate. = T)
-    bootSize = 10
+    bootSize = 50
   }
 
   if (!is.numeric(replications)|replications < 0) {
@@ -171,7 +171,7 @@ simpleBootstrap <- function(responseData, modelTypes, bootSize = 50, replication
       resubLLRtest[[i]] <- cvLogLikRatio(loglikelihood = resubLogLik, numParams = nParamTrainList[[i]], models = modelTypes, method = 'loob')
       boot632LLRtStatistic <- .632*selectRow(sapply(loobLLRtest[[i]], selectRow, "Leave One Out Bootstrap:"), "Test Statistic") + .368*selectRow(sapply(resubLLRtest[[i]], selectRow, "Leave One Out Bootstrap:"), "Test Statistic")
       boot632LLRtDF <- selectRow(sapply(loobLLRtest[[i]], selectRow, "Leave One Out Bootstrap:"), "degrees of freedom")
-      boot632LLRtest[[i]] <- cbind("Test Statistic" = boot632LLRtStatistic, "degrees of freedom" = boot632LLRtDF,  "p-value" = pchisq(boot632LLRtStatistic, df = boot632LLRtDF, lower.tail = F))
+      boot632LLRtest[[i]] <- cbind("Test Statistic" = boot632LLRtStatistic, "degrees of freedom" = boot632LLRtDF,  "p-value" = stats::pchisq(boot632LLRtStatistic, df = boot632LLRtDF, lower.tail = F))
     } else {
       loobLLRtest <- resubLLRtest <- boot632LLRtest <- NULL
     }
@@ -266,13 +266,13 @@ kfoldBootstrap <- function(responseData, modelTypes, bootSize = 50, folds = 10, 
     set.seed(seed)
   }
 
-  if (!is.integer(bootSize)&&(bootSize < 0)) {
-    warning("The `bootSize` argument needs to be positive! Defaulting to `bootSize = 50`.",
+  if (!is.numeric(bootSize) || bootSize < 1) {
+    warning("The `bootSize` argument needs to be a positive number! Defaulting to `bootSize = 50`.",
             immediate. = T)
-    bootSize = 10
+    bootSize = 50
   }
 
-  if (!is.numeric(folds)&&(folds < 0 | folds > nrow(responseData))) {
+  if (!is.numeric(folds) || folds < 1 || folds > nrow(responseData)) {
     warning("The `folds` argument needs to be positive and less than the number of observations in the data! Defaulting to `folds = 10`.",
             immediate. = T)
     folds = 10
