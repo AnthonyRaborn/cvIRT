@@ -1,11 +1,11 @@
 #' Holdout Validation
 #'
 #' @param responseData The initial, full sample data as a matrix of item responses.
-#' @param modelTypes A character vector specifying the model types to be compared. Uses the `TAM` package format, so must be one of the following: "1PL", "2PL", "PCM", "PCM2", "RSM", "GPCM", and "2PL.groups".
+#' @param modelTypes A character vector specifying the model types to be compared. Valid values: "Rasch", "1PL", "2PL", "3PL", "PCM", "PCM2", "RSM", and "GPCM".
 #' @param proportion The proportion of the data to hold out for validation. Must be a numeric value between 0 and 1, exclusive.
 #' @param replications The number of times to replicate the holdout process using the same data, models, and proportion.
 #' @param indicator A logical value that controls the progress printing.
-#' @param ... Further arguments to be passed to the `tam` function.
+#' @param ... Further arguments to be passed to the `mirt` function.
 #' @param seed Either a positive integer setting the random seed, or `NULL`.
 #' @param type A character vector specifying whether the validation treats the "person" or the "item" as the unit of observation. Default is "person".
 #'
@@ -30,16 +30,15 @@ holdout = function(responseData, modelTypes, proportion, replications, indicator
 
   startTime <- Sys.time()
   dots <- list(...)
-  dots[c("verbose", "irtmodel")] <- NULL
+  dots[c("verbose", "itemtype")] <- NULL
 
   if (!is.matrix(responseData)&!is.data.frame(responseData)) {
     stop("The responseData needs to be a matrix or data.frame with individuals on the rows and items on the columns.")
   }
-  valid_models <- c("1PL", "2PL", "PCM", "PCM2", "RSM", "GPCM", "2PL.groups")
-  invalid <- setdiff(modelTypes, valid_models)
+  invalid <- setdiff(modelTypes, cvirt_valid_models)
   if (length(invalid) > 0) {
     stop("Unrecognized modelTypes: ", paste(invalid, collapse = ", "),
-         ". Must be one of: ", paste(valid_models, collapse = ", "))
+         ". Must be one of: ", paste(cvirt_valid_models, collapse = ", "))
   }
   if (is.null(seed)) {
     seed <- sample(1:1e8, size = 1)
@@ -92,19 +91,15 @@ holdout = function(responseData, modelTypes, proportion, replications, indicator
 
       if (indicator) cat(paste0("\r Replication: ", i, " of ", replications, ". Model: ", modelTypes[j], ".   "))
 
-      if (modelTypes[j] %in% c("1PL", "PCM", "PCM2", "RSM")) {
-        trainModel[[i]][[j]] <- do.call(TAM::tam.mml, c(list(resp = trainData[[i]], irtmodel = modelTypes[j], verbose = FALSE), dots))
-        testModel[[i]][[j]] <- do.call(TAM::tam.mml, c(list(resp = testData[[i]], irtmodel = modelTypes[j], xsi.fixed = trainModel[[i]][[j]]$xsi.fixed.estimated, verbose = FALSE), dots))
-      } else if (modelTypes[j] %in% c("2PL", "GPCM", "2PL.groups")) {
-        trainModel[[i]][[j]] <- do.call(TAM::tam.mml.2pl, c(list(resp = trainData[[i]], irtmodel = modelTypes[j], verbose = FALSE), dots))
-        testModel[[i]][[j]] <- do.call(TAM::tam.mml.2pl, c(list(resp = testData[[i]], irtmodel = modelTypes[j], xsi.fixed = trainModel[[i]][[j]]$xsi.fixed.estimated, B.fixed = trainModel[[i]][[j]]$B.fixed.estimated, verbose = FALSE), dots))
-
-      }
+      train_result <- do.call(fit_irt_model, c(list(data = trainData[[i]], model_type = modelTypes[j], verbose = FALSE), dots))
+      test_result <- do.call(fit_irt_model, c(list(data = testData[[i]], model_type = modelTypes[j], fixed_pars = train_result$fixed_pars, verbose = FALSE), dots))
+      trainModel[[i]][[j]] <- train_result
+      testModel[[i]][[j]] <- test_result
 
     # extract CV likelihood and number of parameters
 
-    testLik[i,j] <- testModel[[i]][[j]]$ic$loglike
-    nParamTrain[i,j] <- trainModel[[i]][[j]]$ic$np
+    testLik[i,j] <- test_result$loglik
+    nParamTrain[i,j] <- train_result$npar
 
     }
   }
