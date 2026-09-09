@@ -109,6 +109,46 @@ test_that("simpleBootstrap with two models produces LRT", {
   expect_s3_class(bm, "cvIRT.bestModels")
 })
 
+test_that("simpleBootstrap generates a seed when NULL", {
+  res <- simpleBootstrap(test_data, modelTypes = "1PL", bootSize = 3,
+                         replications = 1, indicator = FALSE, seed = NULL)
+
+  expect_true(is.numeric(res$seed))
+  expect_true(res$seed > 0)
+})
+
+# --- simpleBootstrap leaveOneOut (.632 bootstrap) ---
+
+test_that("simpleBootstrap leaveOneOut produces finite LOOB and .632 estimates", {
+  loob_data <- test_data[1:15, ]
+  res <- simpleBootstrap(loob_data, modelTypes = "1PL", bootSize = 20,
+                         replications = 1, leaveOneOut = TRUE,
+                         indicator = FALSE, seed = 42)
+
+  expect_s3_class(res, "cvIRTloob")
+  expect_true(is.finite(res$AIC[[1]]))
+  expect_true(is.finite(res$AICc[[1]]))
+  expect_true(is.finite(res$BIC[[1]]))
+
+  expect_true(is.finite(res$resubstitution$`AIC resubstitution`[[1]]))
+  expect_true(is.finite(res$`.632 Bootstrap Results`$`AIC .632 Bootstrap`[[1]]))
+  expect_true(is.finite(res$`.632 Bootstrap Results`$`AICc .632 Bootstrap`[[1]]))
+  expect_true(is.finite(res$`.632 Bootstrap Results`$`BIC .632 Bootstrap`[[1]]))
+})
+
+test_that("simpleBootstrap leaveOneOut with two models produces LOOB/resub/.632 LRT", {
+  loob_data <- test_data[1:15, ]
+  res <- simpleBootstrap(loob_data, modelTypes = c("1PL", "2PL"), bootSize = 20,
+                         replications = 1, leaveOneOut = TRUE,
+                         indicator = FALSE, seed = 42)
+
+  expect_s3_class(res, "cvIRTloob")
+  expect_true(all(is.finite(res$AIC[[1]])))
+  expect_false(is.null(res$`-2 log-Likelihood Ratio Test`))
+  expect_false(is.null(res$resubstitution$`-2 log-Likelihood Ratio Test resubstitution`))
+  expect_false(is.null(res$`.632 Bootstrap Results`$`-2 log-Likelihood Ratio Test .632 Bootstrap`))
+})
+
 # --- kfoldBootstrap ---
 
 test_that("kfoldBootstrap runs with small bootSize and folds", {
@@ -117,6 +157,25 @@ test_that("kfoldBootstrap runs with small bootSize and folds", {
 
   expect_s3_class(res, "cvIRTbootstrap")
   expect_true(length(res$bootstrapSamples) > 0)
+})
+
+test_that("kfoldBootstrap with two models produces LRT", {
+  res <- kfoldBootstrap(test_data, modelTypes = c("1PL", "2PL"), bootSize = 3,
+                        folds = 3, replications = 1, indicator = FALSE, seed = 42)
+
+  expect_s3_class(res, "cvIRTbootstrap")
+  expect_false(is.null(res$`-2 log-Likelihood Ratio Test`))
+
+  bm <- bestModel(res)
+  expect_s3_class(bm, "cvIRT.bestModels")
+})
+
+test_that("kfoldBootstrap generates a seed when NULL", {
+  res <- kfoldBootstrap(test_data, modelTypes = "1PL", bootSize = 3,
+                        folds = 3, replications = 1, indicator = FALSE, seed = NULL)
+
+  expect_true(is.numeric(res$seed))
+  expect_true(res$seed > 0)
 })
 
 # --- data.frame input works ---
