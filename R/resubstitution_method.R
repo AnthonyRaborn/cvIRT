@@ -1,9 +1,9 @@
 #' Resubstitution
 #'
 #' @param responseData The initial, full sample data as a matrix of item responses.
-#' @param modelTypes A character vector specifying the model types to be compared. Uses the `TAM` package format, so must be one of the following: "1PL", "2PL", "PCM", "PCM2", "RSM", "GPCM", and "2PL.groups".
+#' @param modelTypes A character vector specifying the model types to be compared. Valid values: "Rasch", "1PL", "2PL", "3PL", "PCM", "PCM2", "RSM", and "GPCM".
 #' @param indicator A logical value that controls the progress printing.
-#' @param ... Further arguments to be passed to the `tam` function.
+#' @param ... Further arguments to be passed to the `mirt` function.
 #' @param type A character vector specifying whether the validation treats the "person" or the "item" as the unit of observation. Default is "person".
 #'
 #' @return An object of class "cvIRT" with the following values:
@@ -25,16 +25,15 @@ resubstitution = function(responseData, modelTypes, indicator = TRUE, ..., type 
 
   startTime <- Sys.time()
   dots <- list(...)
-  dots[c("verbose", "irtmodel")] <- NULL
+  dots[c("verbose", "itemtype")] <- NULL
 
   if (!is.matrix(responseData)&!is.data.frame(responseData)) {
     stop("The responseData needs to be a matrix or data.frame with individuals on the rows and items on the columns.")
   }
-  valid_models <- c("1PL", "2PL", "PCM", "PCM2", "RSM", "GPCM", "2PL.groups")
-  invalid <- setdiff(modelTypes, valid_models)
+  invalid <- setdiff(modelTypes, cvirt_valid_models)
   if (length(invalid) > 0) {
     stop("Unrecognized modelTypes: ", paste(invalid, collapse = ", "),
-         ". Must be one of: ", paste(valid_models, collapse = ", "))
+         ". Must be one of: ", paste(cvirt_valid_models, collapse = ", "))
   }
 
   if (!is.logical(indicator)) {
@@ -54,19 +53,13 @@ resubstitution = function(responseData, modelTypes, indicator = TRUE, ..., type 
 
       if (indicator) cat(paste0("Model: ", modelTypes[j], ".   "))
 
-      if (modelTypes[j] %in% c("1PL", "PCM", "PCM2", "RSM")) {
-        # estimate each model on the data
-        trainModel[[j]] <- do.call(TAM::tam.mml, c(list(resp = responseData, irtmodel = modelTypes[j], verbose = FALSE), dots))
-
-      } else if (modelTypes[j] %in% c("2PL", "GPCM", "2PL.groups")) {
-        trainModel[[j]] <- do.call(TAM::tam.mml.2pl, c(list(resp = responseData, irtmodel = modelTypes[j], verbose = FALSE), dots))
-
-      }
+      result <- do.call(fit_irt_model, c(list(data = responseData, model_type = modelTypes[j], verbose = FALSE), dots))
+      trainModel[[j]] <- result
 
       # extract CV likelihood and number of parameters
 
-      testLik[1,j] <- trainModel[[j]]$ic$loglike
-      nParamTrain[1,j] <- trainModel[[j]]$ic$np
+      testLik[1,j] <- result$loglik
+      nParamTrain[1,j] <- result$npar
 
     }
 
