@@ -4,7 +4,8 @@
 \name{TIMSSParameters}
 \alias{TIMSSParameters}
 \title{TIMSS 2015 4th Grade Math Polytomous Item Parameters.}
-\format{A data frame with 160 rows and 7 columns:
+\format{
+A data frame with 160 rows and 7 columns:
 \describe{
   \item{Item}{the item}
   \item{Model}{the polytomous model it fits}
@@ -13,7 +14,8 @@
   \item{Step2}{the second step difficulty parameter}
   \item{Discrimination}{the item discrimination}
   \item{Reversed}{whether the item step parameters are allowed to be reversed (Step2 < Step1)}
-  }}
+  }
+}
 \source{
 \url{https://timss.bc.edu/timss2015/international-database/}
 }

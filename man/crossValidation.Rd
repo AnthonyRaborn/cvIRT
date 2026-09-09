@@ -4,8 +4,16 @@
 \alias{crossValidation}
 \title{*k*-Fold Cross-Validation}
 \usage{
-crossValidation(responseData, modelTypes, folds = 10, replications = 1,
-  indicator = TRUE, ..., seed = NULL, type = "person")
+crossValidation(
+  responseData,
+  modelTypes,
+  folds = 10,
+  replications = 1,
+  indicator = TRUE,
+  ...,
+  seed = NULL,
+  type = "person"
+)
 }
 \arguments{
 \item{responseData}{The initial, full sample data as a matrix of item responses.}

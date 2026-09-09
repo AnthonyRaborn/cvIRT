@@ -4,8 +4,13 @@
 \alias{resubstitution}
 \title{Resubstitution}
 \usage{
-resubstitution(responseData, modelTypes, indicator = TRUE, ...,
-  type = "person")
+resubstitution(
+  responseData,
+  modelTypes,
+  indicator = TRUE,
+  ...,
+  type = "person"
+)
 }
 \arguments{
 \item{responseData}{The initial, full sample data as a matrix of item responses.}

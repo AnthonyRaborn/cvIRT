@@ -199,30 +199,16 @@ cvLogLikRatio <- function(loglikelihood, numParams, models, method) {
   testStat = degFree = matrix(nrow = nrow(loglikelihood), ncol = ncol(loglikelihood) - 1)
   modelsTested = vector(length = ncol(loglikelihood)-1)
 
-  if (numParams[1,2] - numParams[1,1] < 0){
-
-  for (i in 2:ncol(loglikelihood)){
-    testStat[,i-1] = 2*(loglikelihood[,i-1] - loglikelihood[,i])
-    degFree[,i-1] = numParams[,i] - numParams[,i-1]
+  for (i in 2:ncol(loglikelihood)) {
     modelsTested[i-1] = paste0(models[i-1], " vs. ", models[i])
-
-  }
-
-    pval = stats::pchisq(testStat, df = numParams[,i-1] - numParams[,i], lower.tail = F)
-
-    } else if (numParams[1,2] - numParams[1,1] > 0) {
-
-      for (i in 2:ncol(loglikelihood)){
-
-        testStat[,i-1] = 2*(loglikelihood[,i] - loglikelihood[,i-1])
-        degFree[,i-1] = numParams[,i] - numParams[,i-1]
-        modelsTested[i-1] = paste0(models[i-1], " vs. ", models[i])
-
-      }
-
-    pval = stats::pchisq(testStat, df = numParams[,i] - numParams[,i-1], lower.tail = F)
-
+    degFree[,i-1] = abs(numParams[,i] - numParams[,i-1])
+    if (numParams[1,2] - numParams[1,1] < 0) {
+      testStat[,i-1] = 2*(loglikelihood[,i-1] - loglikelihood[,i])
+    } else {
+      testStat[,i-1] = 2*(loglikelihood[,i] - loglikelihood[,i-1])
     }
+  }
+  pval = stats::pchisq(testStat, df = degFree, lower.tail = F)
 
 
   results <- vector("list", length = length(modelsTested))
@@ -306,6 +292,7 @@ selectListElement <- function(x) {
   return(temp)
 }
 
+#' @export
 bestModel <- function(results, alpha = .05) {
   if ( !('cvIRT' %in% class(results)) ) {
     stop("The object is not of class 'cvIRT'!")
@@ -382,7 +369,8 @@ bestModel <- function(results, alpha = .05) {
 
 }
 
-print.cvIRT.bestModels <- function(x) {
+#' @export
+print.cvIRT.bestModels <- function(x, ...) {
   cat("The best model for each selection criteria:")
   cat(paste0("\nAIC: ", names(x$info[1]), ".\tValue: ", signif(x$info[1], 3)))
   cat(paste0("\nBIC: ", names(x$info[2]), ".\tValue: ", signif(x$info[2], 3)))
@@ -390,6 +378,7 @@ print.cvIRT.bestModels <- function(x) {
   cat(paste0("\nLRT: ", x$lrt[[1]][4], ".\tp-value: ", signif(as.numeric(x$lrt[[1]][3]),3), ".\tModels Compared: ", names(x$lrt)))
 }
 
+#' @export
 extract.cvIRT.bestModels <- function(x) {
   AIC <- names(x$info[1])
   BIC <- names(x$info[2])

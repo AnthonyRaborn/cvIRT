@@ -127,9 +127,10 @@ crossValidation <- function(responseData, modelTypes, folds = 10, replications =
             # run to finish
             testModels[[j]] <- NULL
             testModels[[j]]$ic$loglike <- NA
-          } else {
-
+          } else if (modelTypes[j] %in% c("1PL", "PCM", "PCM2", "RSM")) {
             testModels[[j]] <- tam.mml.loocv(outSample, irtmodel = modelTypes[j], maxKiInput = rep(max(responseData), times = ncol(responseData)), xsi.fixed = trainModels[[j]]$xsi.fixed.estimated, xsi.inits = trainModels[[j]]$xsi.fixed.estimated, verbose = F, ...)
+          } else if (modelTypes[j] %in% c("2PL", "GPCM", "2PL.groups")) {
+            testModels[[j]] <- tam.mml.2pl.loocv(outSample, irtmodel = modelTypes[j], maxKiInput = rep(max(responseData), times = ncol(responseData)), xsi.fixed = trainModels[[j]]$xsi.fixed.estimated, xsi.inits = trainModels[[j]]$xsi.fixed.estimated, B.fixed = cbind(trainModels[[j]]$B.fixed.estimated, trainModels[[j]]$B.fixed.estimated[, 4]), verbose = F, ...)
           }
         } else {
 

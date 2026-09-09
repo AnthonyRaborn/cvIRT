@@ -4,8 +4,16 @@
 \alias{holdout}
 \title{Holdout Validation}
 \usage{
-holdout(responseData, modelTypes, proportion, replications,
-  indicator = TRUE, ..., seed = NULL, type = "person")
+holdout(
+  responseData,
+  modelTypes,
+  proportion,
+  replications,
+  indicator = TRUE,
+  ...,
+  seed = NULL,
+  type = "person"
+)
 }
 \arguments{
 \item{responseData}{The initial, full sample data as a matrix of item responses.}

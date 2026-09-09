@@ -4,9 +4,17 @@
 \alias{simpleBootstrap}
 \title{The Standard Bootstrap}
 \usage{
-simpleBootstrap(responseData, modelTypes, bootSize = 50,
-  replications = 1, leaveOneOut = F, indicator = TRUE, ...,
-  seed = NULL, type = "person")
+simpleBootstrap(
+  responseData,
+  modelTypes,
+  bootSize = 50,
+  replications = 1,
+  leaveOneOut = F,
+  indicator = TRUE,
+  ...,
+  seed = NULL,
+  type = "person"
+)
 }
 \arguments{
 \item{responseData}{The initial, full sample data as a matrix of item responses.}
@@ -49,6 +57,7 @@ The Standard Bootstrap
 
 }
 \seealso{
-Other bootstrap: \code{\link{kfoldBootstrap}}
+Other bootstrap:
+\code{\link[=kfoldBootstrap]{kfoldBootstrap()}}
 }
 \concept{bootstrap}

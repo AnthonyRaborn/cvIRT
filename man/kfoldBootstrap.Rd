@@ -4,9 +4,17 @@
 \alias{kfoldBootstrap}
 \title{(Repeated) \emph{k}-Fold Bootstrap}
 \usage{
-kfoldBootstrap(responseData, modelTypes, bootSize = 50, folds = 10,
-  replications = 1, indicator = TRUE, ..., seed = NULL,
-  type = "person")
+kfoldBootstrap(
+  responseData,
+  modelTypes,
+  bootSize = 50,
+  folds = 10,
+  replications = 1,
+  indicator = TRUE,
+  ...,
+  seed = NULL,
+  type = "person"
+)
 }
 \arguments{
 \item{responseData}{The initial, full sample data as a matrix of item responses.}
@@ -51,6 +59,7 @@ A list object of class "cvIRT" with the following values:
 
 }
 \seealso{
-Other bootstrap: \code{\link{simpleBootstrap}}
+Other bootstrap:
+\code{\link[=simpleBootstrap]{simpleBootstrap()}}
 }
 \concept{bootstrap}
