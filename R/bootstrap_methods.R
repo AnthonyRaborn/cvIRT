@@ -1,12 +1,12 @@
 #' The Standard Bootstrap
 #'
 #' @param responseData The initial, full sample data as a matrix of item responses.
-#' @param modelTypes A character vector specifying the model types to be compared. Uses the `TAM` package format, so must be one of the following: "1PL", "2PL", "PCM", "PCM2", "RSM", "GPCM", and "2PL.groups".
+#' @param modelTypes A character vector specifying the model types to be compared. Valid values: "Rasch", "1PL", "2PL", "3PL", "PCM", "PCM2", "RSM", and "GPCM".
 #' @param bootSize An integer value greater than 0 that indicates the number of bootstrap samples to draw.
 #' @param replications The number of replications of the bootstrap procedure to perform. Not suggested to use as for the standard bootstrap changing the `bootSize` is more efficient.
 #' @param leaveOneOut A logical value indicating whether to use `leaveOneOut` bootstrap. Not suggested for use.
 #' @param indicator A logical value that controls the progress printing.
-#' @param ... Further arguments to be passed to the `tam` function.
+#' @param ... Further arguments to be passed to the `mirt` function.
 #' @param seed Either a positive integer setting the random seed, or `NULL`.
 #' @param type A character vector specifying whether the validation treats the "person" or the "item" as the unit of observation. Default is "person".
 #'
@@ -31,16 +31,15 @@ simpleBootstrap <- function(responseData, modelTypes, bootSize = 50, replication
 
   startTime <- Sys.time()
   dots <- list(...)
-  dots[c("verbose", "irtmodel")] <- NULL
+  dots[c("verbose", "itemtype")] <- NULL
 
   if (!is.matrix(responseData)&!is.data.frame(responseData)) {
     stop("The responseData needs to be a matrix or data.frame with individuals on the rows and items on the columns.")
   }
-  valid_models <- c("1PL", "2PL", "PCM", "PCM2", "RSM", "GPCM", "2PL.groups")
-  invalid <- setdiff(modelTypes, valid_models)
+  invalid <- setdiff(modelTypes, cvirt_valid_models)
   if (length(invalid) > 0) {
     stop("Unrecognized modelTypes: ", paste(invalid, collapse = ", "),
-         ". Must be one of: ", paste(valid_models, collapse = ", "))
+         ". Must be one of: ", paste(cvirt_valid_models, collapse = ", "))
   }
   if (is.null(seed)) {
     seed <- sample(1:1e8, size = 1)
@@ -126,16 +125,13 @@ simpleBootstrap <- function(responseData, modelTypes, bootSize = 50, replication
       }
 
       # estimate model on bootstrap sample
-        if (modelTypes[j] %in% c("1PL", "PCM", "PCM2", "RSM")) {
-          testModels[[b]][[j]] <- do.call(TAM::tam.mml, c(list(resp = responseData[bootSamples[[i]][[b]],], irtmodel = modelTypes[j], verbose = FALSE), dots))
-        } else if (modelTypes[j] %in% c("2PL", "GPCM", "2PL.groups")) {
-          testModels[[b]][[j]] <- do.call(TAM::tam.mml.2pl, c(list(resp = responseData[bootSamples[[i]][[b]],], irtmodel = modelTypes[j], verbose = FALSE), dots))
-        }
+        result <- do.call(fit_irt_model, c(list(data = responseData[bootSamples[[i]][[b]], , drop = FALSE], model_type = modelTypes[j], verbose = FALSE), dots))
+        testModels[[b]][[j]] <- result
 
         # extract CV likelihood and number of parameters
-        nParamTrainList[[i]][b,j] <- testModels[[b]][[j]]$ic$np
+        nParamTrainList[[i]][b,j] <- result$npar
         if (!leaveOneOut) {
-        testLikList[[i]][b,j] <- testModels[[b]][[j]]$ic$loglike
+        testLikList[[i]][b,j] <- result$loglik
         }
       }
     }
@@ -230,12 +226,12 @@ simpleBootstrap <- function(responseData, modelTypes, bootSize = 50, replication
 #' (Repeated) \emph{k}-Fold Bootstrap
 #'
 #' @param responseData The initial, full sample data as a matrix of item responses.
-#' @param modelTypes A character vector specifying the model types to be compared. Uses the `TAM` package format, so must be one of the following: "1PL", "2PL", "PCM", "PCM2", "RSM", "GPCM", and "2PL.groups".
+#' @param modelTypes A character vector specifying the model types to be compared. Valid values: "Rasch", "1PL", "2PL", "3PL", "PCM", "PCM2", "RSM", and "GPCM".
 #' @param bootSize An integer value greater than 0 that indicates the number of bootstrap samples to draw.
 #' @param folds An integer value indicating the number of cross-validation folds to split the data into during the cross-validation process.
 #' @param replications The number of replications of the bootstrap procedure to perform. Not suggested to use as for the standard bootstrap changing the `bootSize` is more efficient.
 #' @param indicator A logical value that controls the progress printing.
-#' @param ... Further arguments to be passed to the `tam` function.
+#' @param ... Further arguments to be passed to the `mirt` function.
 #' @param seed Either a positive integer setting the random seed, or `NULL`.
 #' @param type A character vector specifying whether the validation treats the "person" or the "item" as the unit of observation. Default is "person".
 #'
@@ -260,16 +256,15 @@ kfoldBootstrap <- function(responseData, modelTypes, bootSize = 50, folds = 10, 
 
   startTime <- Sys.time()
   dots <- list(...)
-  dots[c("verbose", "irtmodel")] <- NULL
+  dots[c("verbose", "itemtype")] <- NULL
 
   if (!is.matrix(responseData)&!is.data.frame(responseData)) {
     stop("The responseData needs to be a matrix or data.frame with individuals on the rows and items on the columns.")
   }
-  valid_models <- c("1PL", "2PL", "PCM", "PCM2", "RSM", "GPCM", "2PL.groups")
-  invalid <- setdiff(modelTypes, valid_models)
+  invalid <- setdiff(modelTypes, cvirt_valid_models)
   if (length(invalid) > 0) {
     stop("Unrecognized modelTypes: ", paste(invalid, collapse = ", "),
-         ". Must be one of: ", paste(valid_models, collapse = ", "))
+         ". Must be one of: ", paste(cvirt_valid_models, collapse = ", "))
   }
   if (is.null(seed)) {
     seed <- sample(1:1e8, size = 1)
@@ -354,15 +349,12 @@ kfoldBootstrap <- function(responseData, modelTypes, bootSize = 50, folds = 10, 
         }
 
         # estimate model on bootstrap sample
-        if (modelTypes[j] %in% c("1PL", "PCM", "PCM2", "RSM")) {
-          testModels[[k]][[b]][[j]] <- do.call(TAM::tam.mml, c(list(resp = trainFold[bootSamples[[i]][[k]][[b]],], irtmodel = modelTypes[j], verbose = FALSE), dots))
-        } else if (modelTypes[j] %in% c("2PL", "GPCM", "2PL.groups")) {
-          testModels[[k]][[b]][[j]] <- do.call(TAM::tam.mml.2pl, c(list(resp = trainFold[bootSamples[[i]][[k]][[b]],], irtmodel = modelTypes[j], verbose = FALSE), dots))
-        }
+        result <- do.call(fit_irt_model, c(list(data = trainFold[bootSamples[[i]][[k]][[b]], , drop = FALSE], model_type = modelTypes[j], verbose = FALSE), dots))
+        testModels[[k]][[b]][[j]] <- result
 
         # extract CV likelihood and number of parameters
-        nParamTrainList[[i]][[k]][b,j] <- testModels[[k]][[b]][[j]]$ic$np
-        testLikList[[i]][[k]][b,j] <- testModels[[k]][[b]][[j]]$ic$loglike
+        nParamTrainList[[i]][[k]][b,j] <- result$npar
+        testLikList[[i]][[k]][b,j] <- result$loglik
 
       }
     }
