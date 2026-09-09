@@ -447,12 +447,13 @@ loobLogLikEst <- function(fittedModels, loobMatrix, models, responses, bootstrap
       for (b in 1:length(fittedModels)) {
         cat(paste0("\rFitting observation ", n, " of ", nrow(loobMatrix), " with bootstrap sample ", b, " of ", length(fittedModels), " and the ", models[j], " model (", j, " of ", length(models), " models).      \t\t"))
         if (loobMatrix[n,b]) {
-          if (models[j] %in% c("1PL", "PCM", "PCM2", "RSM")) {
-            tempLogLik <- do.call(tam.mml.loocv, c(list(resp = matrix(responses[n,], ncol = ncol(responses)), irtmodel = models[j], xsi.fixed = fittedModels[[b]][[j]]$xsi.fixed.estimated, xsi.inits = fittedModels[[b]][[j]]$xsi.fixed.estimated, maxKiInput = rep(max(responses), times = ncol(responses)), verbose = F), dots))$ic$loglike
-          } else if (models[j] %in% c("2PL", "GPCM", "2PL.groups")) {
-            tempLogLik <- do.call(tam.mml.2pl.loocv, c(list(resp = matrix(responses[n,], ncol = ncol(responses)), irtmodel = models[j], xsi.fixed = fittedModels[[b]][[j]]$xsi.fixed.estimated, xsi.inits = fittedModels[[b]][[j]]$xsi.fixed.estimated, maxKiInput = rep(max(responses), times = ncol(responses)), verbose = F), dots))$ic$loglike
-          }
-          loobLogLik[[j]][n,b] <- tempLogLik
+          result <- do.call(fit_irt_model, c(list(
+            data = matrix(responses[n,], nrow = 1, ncol = ncol(responses)),
+            model_type = models[j],
+            fixed_pars = fittedModels[[b]][[j]]$fixed_pars,
+            verbose = FALSE
+          ), dots))
+          loobLogLik[[j]][n,b] <- result$loglik
         }
       }
     }
@@ -468,19 +469,16 @@ loobLogLikEst <- function(fittedModels, loobMatrix, models, responses, bootstrap
 resubLogLikEst <- function(models, responses, dots = list()) {
   logLik <- logLikMean <- vector('list', length = length(models))
   for (j in 1:length(models)) {
-    if (models[j] %in% c("1PL", "PCM", "PCM2", "RSM")) {
-      tempModel <- do.call(TAM::tam.mml, c(list(resp = responses, irtmodel = models[j], verbose = F), dots))
-    } else if (models[j] %in% c("2PL", "GPCM", "2PL.groups")) {
-      tempModel <- do.call(TAM::tam.mml.2pl, c(list(resp = responses, irtmodel = models[j], verbose = F), dots))
-    }
+    full_result <- do.call(fit_irt_model, c(list(data = responses, model_type = models[j], verbose = FALSE), dots))
     for (n in 1:nrow(responses)) {
       cat(paste0("\rFitting observation ", n, " of ", nrow(responses), " with the ", models[j], " model (", j, " of ", length(models), " models) for resubstitution.     \t\t\t "))
-      if (models[j] %in% c("1PL", "PCM", "PCM2", "RSM")) {
-        tempLik <- do.call(tam.mml.loocv, c(list(resp = matrix(responses[n,], ncol = ncol(responses)), irtmodel = models[j], xsi.fixed = tempModel$xsi.fixed.estimated, xsi.inits = tempModel$xsi.fixed.estimated, maxKiInput = rep(max(responses), times = ncol(responses)), verbose = F), dots))$ic$loglike
-      } else if (models[j] %in% c("2PL", "GPCM", "2PL.groups")) {
-        tempLik <- do.call(tam.mml.2pl.loocv, c(list(resp = matrix(responses[n,], ncol = ncol(responses)), irtmodel = models[j], xsi.fixed = tempModel$xsi.fixed.estimated, xsi.inits = tempModel$xsi.fixed.estimated, maxKiInput = rep(max(responses), times = ncol(responses)), verbose = F), dots))$ic$loglike
-      }
-      logLik[[j]][n] <- tempLik
+      obs_result <- do.call(fit_irt_model, c(list(
+        data = matrix(responses[n,], nrow = 1, ncol = ncol(responses)),
+        model_type = models[j],
+        fixed_pars = full_result$fixed_pars,
+        verbose = FALSE
+      ), dots))
+      logLik[[j]][n] <- obs_result$loglik
       names(logLik) <- models
     }
   }
