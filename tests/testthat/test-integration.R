@@ -1,8 +1,6 @@
 # Integration tests that exercise end-to-end mirt model fitting.
 # These are slower but cover the actual CV/holdout/bootstrap paths.
 
-skip_if_not_installed("MASS")
-
 # Shared test data: 30 rows x 5 items, binary
 set.seed(123)
 test_data <- matrix(sample(0:1, 150, replace = TRUE), nrow = 30, ncol = 5)
