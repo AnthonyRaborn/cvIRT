@@ -2,11 +2,11 @@
 #' *k*-Fold Cross-Validation
 #'
 #' @param responseData The initial, full sample data as a matrix of item responses.
-#' @param modelTypes A character vector specifying the model types to be compared. Uses the `TAM` package format, so must be one of the following: "1PL", "2PL", "PCM", "PCM2", "RSM", "GPCM", and "2PL.groups".
+#' @param modelTypes A character vector specifying the model types to be compared. Valid values: "Rasch", "1PL", "2PL", "3PL", "PCM", "PCM2", "RSM", and "GPCM".
 #' @param folds An integer value indicating the number of cross-validation folds to split the data into during the cross-validation process. If specified as `folds=nrow(responseData)` (or some other way equivalently), results in the leave-one-out cross-validation procedure (a.k.a., when *k*=*n*, *k*-fold CV == *n*-fold CV == LOOCV).
 #' @param replications The number of replications of the *k*-fold CV procedure to perform, with data being split into the *k*-fold groups randomly each time.
 #' @param indicator A logical value that controls the progress printing.
-#' @param ... Further arguments to be passed to the `tam` function.
+#' @param ... Further arguments to be passed to the `mirt` function.
 #' @param seed Either a positive integer setting the random seed, or `NULL`.
 #' @param type A character vector specifying whether the validation treats the "person" or the "item" as the unit of observation. Default is "person".
 #'
@@ -32,16 +32,15 @@ crossValidation <- function(responseData, modelTypes, folds = 10, replications =
 
   startTime <- Sys.time()
   dots <- list(...)
-  dots[c("verbose", "irtmodel")] <- NULL
+  dots[c("verbose", "itemtype")] <- NULL
 
   if (!is.matrix(responseData)&!is.data.frame(responseData)) {
     stop("The responseData needs to be a matrix or data.frame with individuals on the rows and items on the columns.")
   }
-  valid_models <- c("1PL", "2PL", "PCM", "PCM2", "RSM", "GPCM", "2PL.groups")
-  invalid <- setdiff(modelTypes, valid_models)
+  invalid <- setdiff(modelTypes, cvirt_valid_models)
   if (length(invalid) > 0) {
     stop("Unrecognized modelTypes: ", paste(invalid, collapse = ", "),
-         ". Must be one of: ", paste(valid_models, collapse = ", "))
+         ". Must be one of: ", paste(cvirt_valid_models, collapse = ", "))
   }
   if (is.null(seed)) {
     seed <- sample(1:1e8, size = 1)
@@ -125,40 +124,33 @@ crossValidation <- function(responseData, modelTypes, folds = 10, replications =
         inSample <- responseData[foldAssignment[[i]]!=k, , drop = FALSE]
         outSample <- matrix(responseData[foldAssignment[[i]]==k,], ncol = ncol(responseData))
 
-        if (modelTypes[j] %in% c("1PL", "PCM", "PCM2", "RSM")) {
-          trainModels[[j]] <- do.call(TAM::tam.mml, c(list(resp = inSample, irtmodel = modelTypes[j], verbose = FALSE), dots))
-        } else if (modelTypes[j] %in% c("2PL", "GPCM", "2PL.groups")) {
-          trainModels[[j]] <- do.call(TAM::tam.mml.2pl, c(list(resp = inSample, irtmodel = modelTypes[j], verbose = FALSE), dots))
+        train_result <- do.call(fit_irt_model, c(list(data = inSample, model_type = modelTypes[j], verbose = FALSE), dots))
+        trainModels[[j]] <- train_result
+
+        if (all(is.na(outSample))) {
+          testModels[[j]] <- NULL
+          testLikList[[i]][k,j] <- NA
+          nParamTrainList[[i]][k,j] <- train_result$npar
+          next
         }
 
-        if (loocv) {
-          if (all(is.na(outSample))) {
-            testModels[[j]] <- NULL
-            testModels[[j]]$ic$loglike <- NA
-          } else if (modelTypes[j] %in% c("1PL", "PCM", "PCM2", "RSM")) {
-            testModels[[j]] <- tryCatch(do.call(tam.mml.loocv, c(list(resp = outSample, irtmodel = modelTypes[j], maxKiInput = rep(max(responseData), times = ncol(responseData)), xsi.fixed = trainModels[[j]]$xsi.fixed.estimated, xsi.inits = trainModels[[j]]$xsi.fixed.estimated, verbose = FALSE), dots)),
-                                        error = function(e) return(NA))
-          } else if (modelTypes[j] %in% c("2PL", "GPCM", "2PL.groups")) {
-            testModels[[j]] <- tryCatch(do.call(tam.mml.2pl.loocv, c(list(resp = outSample, irtmodel = modelTypes[j], maxKiInput = rep(max(responseData), times = ncol(responseData)), xsi.fixed = trainModels[[j]]$xsi.fixed.estimated, xsi.inits = trainModels[[j]]$xsi.fixed.estimated, B.fixed = trainModels[[j]]$B.fixed.estimated, verbose = FALSE), dots)),
-                                        error = function(e) return(NA))
-          }
+        test_result <- tryCatch(
+          do.call(fit_irt_model, c(list(
+            data = if (loocv) matrix(outSample, nrow = 1) else outSample,
+            model_type = modelTypes[j],
+            fixed_pars = train_result$fixed_pars,
+            verbose = FALSE
+          ), dots)),
+          error = function(e) NULL
+        )
+        testModels[[j]] <- test_result
+
+        if (is.null(test_result)) {
+          testLikList[[i]][k,j] <- NA
         } else {
-          if (modelTypes[j] %in% c("1PL", "PCM", "PCM2", "RSM")) {
-            testModels[[j]] <- tryCatch(do.call(TAM::tam.mml, c(list(resp = outSample, irtmodel = modelTypes[j], xsi.fixed = trainModels[[j]]$xsi.fixed.estimated, xsi.inits = trainModels[[j]]$xsi.fixed.estimated, verbose = FALSE), dots)),
-                                        error = function(e) return(NA))
-          } else if (modelTypes[j] %in% c("2PL", "GPCM", "2PL.groups")) {
-            testModels[[j]] <- tryCatch(do.call(TAM::tam.mml.2pl, c(list(resp = outSample, irtmodel = modelTypes[j], xsi.fixed = trainModels[[j]]$xsi.fixed.estimated, xsi.inits = trainModels[[j]]$xsi.fixed.estimated, B.fixed = trainModels[[j]]$B.fixed.estimated, verbose = FALSE), dots)),
-                                        error = function(e) return(NA))
-          }
+          testLikList[[i]][k,j] <- test_result$loglik
         }
-        if (identical(testModels[[j]], NA) || is.null(testModels[[j]])) {
-          testLikList[[i]][k,j] = NA
-          nParamTrainList[[i]][k,j] = trainModels[[j]]$ic$np
-        } else {
-        # extract CV likelihood and number of parameters
-        testLikList[[i]][k,j] <- testModels[[j]]$ic$loglike
-        nParamTrainList[[i]][k,j] <- trainModels[[j]]$ic$np
-        }
+        nParamTrainList[[i]][k,j] <- train_result$npar
 
       }
     }
