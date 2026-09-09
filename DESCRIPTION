@@ -3,7 +3,7 @@ Title: Cross Validation and Bootstrap Methods for IRT Model Selection
 Version: 0.0.0.9000
 Authors@R: person("Anthony", "Raborn", email = "anthony.w.raborn@gmail.com", role = c("aut", "cre"))
 Description: Using cross-validation and bootstrap methods, select between various competing IRT/Rasch models.
-Depends: R (>= 3.5.0)
+Depends: R (>= 4.1.0)
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
