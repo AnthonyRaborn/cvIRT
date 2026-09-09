@@ -1,4 +1,4 @@
-# Integration tests that exercise end-to-end TAM model fitting.
+# Integration tests that exercise end-to-end mirt model fitting.
 # These are slower but cover the actual CV/holdout/bootstrap paths.
 
 skip_if_not_installed("MASS")
@@ -35,7 +35,7 @@ test_that("holdout runs with 1PL model", {
   expect_null(res$`-2 log-Likelihood Ratio Test`)
 })
 
-# --- holdout with two models (exercises B.fixed fix) ---
+# --- holdout with two models (exercises fixed_pars re-estimation on test data) ---
 
 test_that("holdout with 1PL and 2PL fixes slopes on test data", {
   res <- holdout(test_data, modelTypes = c("1PL", "2PL"), proportion = .3,
@@ -75,9 +75,9 @@ test_that("crossValidation 5-fold works with two models", {
   expect_s3_class(bm, "cvIRT.bestModels")
 })
 
-# --- crossValidation LOOCV (exercises modified_TAM_code.R) ---
+# --- crossValidation LOOCV (exercises single-row fixed_pars fitting) ---
 
-test_that("crossValidation LOOCV exercises tam.mml.loocv wrappers", {
+test_that("crossValidation LOOCV exercises single-row fixed-parameter fits", {
   small_data <- test_data[1:10, ]
   res <- crossValidation(small_data, modelTypes = "1PL",
                          folds = nrow(small_data),
