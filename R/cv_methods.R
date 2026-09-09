@@ -166,8 +166,8 @@ crossValidation <- function(responseData, modelTypes, folds = 10, replications =
     # calculate model selection criteria for each replication and model type
     AICval[[i]] <- cvAIC(loglikelihood = testLikList[[i]], numParams = nParamTrainList[[i]], method = "kfold")
     if (!is.null(attr(AICval[[i]], "warning"))) warningIndicator <- c(warningIndicator, i)
-    AICCval[[i]] <- cvAICc(loglikelihood = testLikList[[i]], numParams = nParamTrainList[[i]], n = (1-1/folds)*nrow(responseData), method = "kfold")
-    BICval[[i]] <- cvBIC(loglikelihood = testLikList[[i]], numParams = nParamTrainList[[i]], n = (1-1/folds)*nrow(responseData), method = "kfold")
+    AICCval[[i]] <- cvAICc(loglikelihood = testLikList[[i]], numParams = nParamTrainList[[i]], n = (1/folds)*nrow(responseData), method = "kfold")
+    BICval[[i]] <- cvBIC(loglikelihood = testLikList[[i]], numParams = nParamTrainList[[i]], n = (1/folds)*nrow(responseData), method = "kfold")
     if (length(modelTypes) > 1){
 
       LLRtest[[i]] <- cvLogLikRatio(loglikelihood = testLikList[[i]], numParams = nParamTrainList[[i]], models = modelTypes, method = "kfold")
