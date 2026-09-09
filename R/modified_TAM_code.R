@@ -637,11 +637,9 @@ tam.mml.2pl.loocv <- function (resp, Y = NULL, group = NULL, irtmodel = "2PL", f
       B_orig[B.fixed[, 1:3, drop = FALSE]] <- 0
     }
   }
-  # res <- TAM:::tam_mml_proc_unidim_simplify(Y = Y, A = A, G = G,
-  #                                     beta.fixed = beta.fixed)
   unidim_simplify <- F
-  YSD <- res$YSD
-  Avector <- res$Avector
+  YSD <- F
+  Avector <- F
   res <- TAM:::tam_acceleration_inits(acceleration = acceleration,
                                 G = G, xsi = xsi, variance = variance, B = B, irtmodel = irtmodel)
   xsi_acceleration <- res$xsi_acceleration
@@ -719,38 +717,8 @@ tam.mml.2pl.loocv <- function (resp, Y = NULL, group = NULL, irtmodel = "2PL", f
     thetabar <- res$thetabar
     cB_obs <- res$cB_obs
     B_obs <- res$B_obs
-    # res <- TAM:::tam_mml_mstep_intercept(A = A, xsi = xsi, AXsi = AXsi,
-    #                                B = B, theta = theta, nnodes = nnodes, maxK = maxK,
-    #                                Msteps = Msteps, rprobs = rprobs, np = np, est.xsi.index0 = est.xsi.index0,
-    #                                itemwt = itemwt, indexIP.no = indexIP.no, indexIP.list2 = indexIP.list2,
-    #                                Avector = Avector, max.increment = max.increment,
-    #                                xsi.fixed = xsi.fixed, fac.oldxsi = fac.oldxsi,
-    #                                ItemScore = ItemScore, convM = convM, progress = progress,
-    #                                nitems = nitems, iter = iter, increment.factor = increment.factor,
-    #                                xsi_acceleration = xsi_acceleration, trim_increment = trim_increment,
-    #                                mstep_intercept_method = "R", maxcat = maxcat)
-    # xsi <- res$xsi
-    # se.xsi <- res$se.xsi
-    # max.increment <- res$max.increment
-    # xsi_acceleration <- res$xsi_acceleration
-    # xsi_change <- res$xsi_change
-    # if (irtmodel %in% c("2PL", "GPCM", "GPCM.design", "2PL.groups")) {
-    #   res <- TAM:::tam_mml_2pl_mstep_slope(B_orig = B_orig,
-    #                                  B = B, B_obs = B_obs, B.fixed = B.fixed, max.increment = max.increment,
-    #                                  nitems = nitems, A = A, AXsi = AXsi, xsi = xsi,
-    #                                  theta = theta, nnodes = nnodes, maxK = maxKi,
-    #                                  itemwt = itemwt, Msteps = Msteps, ndim = ndim,
-    #                                  convM = convM, irtmodel = irtmodel, progress = progress,
-    #                                  est.slopegroups = est.slopegroups, E = E, basispar = basispar,
-    #                                  se.B = se.B, equal.categ = equal.categ, B_acceleration = B_acceleration,
-    #                                  trim_increment = trim_increment, iter = iter,
-    #                                  maxcat = maxcat, use_rcpp = F, use_rcpp_calc_prob = F)
-    #   B <- res$B
-    #   se.B <- res$se.B
-    #   basispar <- res$basispar
-    #   B_acceleration <- res$B_acceleration
-    #   a4 <- B_change <- res$B_change
-    # }
+    # M-step intercept/slope updates skipped: xsi and B are fixed for LOOCV
+    xsi_change <- 0
     res <- TAM:::tam_mml_compute_deviance(loglike_num = res.hwt$rfx,
                                     loglike_sto = res.hwt$rfx, snodes = snodes, thetawidth = thetawidth,
                                     pweights = pweights, deviance = deviance, deviance.history = deviance.history,
@@ -774,10 +742,8 @@ tam.mml.2pl.loocv <- function (resp, Y = NULL, group = NULL, irtmodel = "2PL", f
       se.xsi.min <- se.xsi
       se.B.min <- se.B
     }
-    # a1 <- xsi_change
-    # a2 <- beta_change
-    # a3 <- variance_change
-    # devch <- -(deviance - olddeviance)
+    a1 <- xsi_change
+    devch <- -(deviance - olddeviance)
     res <- TAM:::tam_mml_progress_em(progress = progress, deviance = deviance,
                                deviance_change = deviance_change, iter = iter,
                                rel_deviance_change = rel_deviance_change, xsi_change = xsi_change,
